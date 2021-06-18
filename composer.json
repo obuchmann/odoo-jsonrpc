@@ -1,7 +1,8 @@
 {
     "name": "obuchmann/odoo-jsonrpc",
-    "description": "Odoo Json-RPC connector, prepared for laravel integration",
+    "description": "PHP Odoo Json-RPC connector, prepared for laravel integration",
     "keywords": [
+        "php",
         "odoo",
         "jsonrpc",
         "laravel"
