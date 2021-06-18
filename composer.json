@@ -1,0 +1,46 @@
+{
+    "name": "obuchmann/odoo-jsonrpc",
+    "description": "Odoo Json-RPC connector, prepared for laravel integration",
+    "keywords": [
+        "odoo",
+        "jsonrpc",
+        "laravel"
+    ],
+    "homepage": "https://github.com/obuchmann/odoo-jsonrpc",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Oliver Buchmann",
+            "email": "o.buchmann@pc-web.at"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "guzzlehttp/guzzle": "^7.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Obuchmann\\OdooJsonRpc\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Obuchmann\\OdooJsonRpc\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Obuchmann\\OdooJsonRpc\\OdooServiceProvider"
+            ]
+        }
+    }
+
+}
