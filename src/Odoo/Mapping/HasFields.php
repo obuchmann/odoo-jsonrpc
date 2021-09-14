@@ -78,7 +78,7 @@ trait HasFields
 
             foreach ($attributes as $attribute) {
                 $field = $attribute->newInstance()->name ?? $property->name;
-                if (isset($model->{$property->name})) {
+                if ($property->isInitialized($model)) {
                     $item->{$field} = $castsExists ? CastHandler::uncast($property, $model->{$property->name}) : $model->{$property->name} ;
                 }
             }
@@ -86,7 +86,7 @@ trait HasFields
             $hasManyRelations = $property->getAttributes(HasMany::class);
             foreach ($hasManyRelations as $attribute) {
                 $field = $attribute->newInstance()->name ?? $property->name;
-                if (isset($model->{$property->name})) {
+                if ($property->isInitialized($model)) {
 
                     $values = $model->{$property->name};
                     if (null === $values)

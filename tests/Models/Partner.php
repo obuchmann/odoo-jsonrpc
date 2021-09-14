@@ -16,6 +16,9 @@ class Partner extends OdooModel
     #[Field]
     public string $name;
 
+    #[Field('email')]
+    public ?string $email;
+
     #[Field('parent_id'), Key]
     public ?int $parentId;
 

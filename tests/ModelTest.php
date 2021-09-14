@@ -84,6 +84,27 @@ class ModelTest extends TestCase
         $this->assertEquals("Tester2", $check->name);
     }
 
+    public function testUpdateNullValue()
+    {
+        $partner = new Partner();
+        $partner->name = 'Tester';
+        $partner->email = "tester@example.org";
+        $partner->save();
+
+
+        $this->assertNotNull($partner->id);
+        $this->assertNotNull($partner->email);
+
+        $partner->name = "Tester2";
+        $partner->email = null;
+        $partner->save();
+
+        $check = Partner::find($partner->id);
+
+        $this->assertEquals("Tester2", $check->name);
+        $this->assertEquals(null, $check->email);
+    }
+
     public function testSelectColumns()
     {
         $items = Partner::query()->limit(5)
