@@ -7,6 +7,7 @@ namespace Obuchmann\OdooJsonRpc\Odoo;
 use Obuchmann\OdooJsonRpc\Attributes\Model;
 use Obuchmann\OdooJsonRpc\Exceptions\ConfigurationException;
 use Obuchmann\OdooJsonRpc\Exceptions\OdooModelException;
+use Obuchmann\OdooJsonRpc\Exceptions\UndefinedPropertyException;
 use Obuchmann\OdooJsonRpc\Odoo;
 use Obuchmann\OdooJsonRpc\Odoo\Mapping\HasFields;
 
@@ -82,6 +83,45 @@ class OdooModel
         }
 
         return $this;
+    }
+
+    public function fill(iterable $properties)
+    {
+        $reflectionClass = new \ReflectionClass(static::class);
+
+        foreach ($properties as $name => $value) {
+            if($reflectionClass->hasProperty($name)){
+                $this->{$name} = $value;
+            }else {
+                throw new UndefinedPropertyException("Property $name not defined");
+            }
+        }
+
+        return $this;
+    }
+
+
+    public function equals(OdooModel $model)
+    {
+        $reflectionClass = new \ReflectionClass(static::class);
+        $properties = $reflectionClass->getProperties();
+
+        foreach ($properties as $property) {
+            if($property->isInitialized($this)){
+                if(!$property->isInitialized($model)){
+                    return false;
+                }
+                if($this->{$property->name} !== $model->{$property->name}){
+                    return false;
+                }
+            }else{
+                if($property->isInitialized($model)){
+                    return false;
+                }
+            }
+
+        }
+        return true;
     }
 
 }

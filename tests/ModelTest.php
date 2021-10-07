@@ -182,4 +182,43 @@ class ModelTest extends TestCase
 
     }
 
+
+    public function testFill()
+    {
+        $partner = new Partner();
+        $partner->fill([
+            'name' => 'test'
+        ]);
+
+        $this->assertEquals('test', $partner->name);
+
+    }
+
+    public function testEquals()
+    {
+        $partner = new Partner();
+        $partner->name = "test";
+
+        $partner2 = new Partner();
+        $partner2->name = "test";
+
+        $partner3 = new Partner();
+        $partner3->name = "test";
+        $partner3->email = "test";
+
+        $partner4 = new Partner();
+        $partner4->name = "test2";
+
+        $partner5 = clone $partner;
+
+        $partner6 = clone $partner;
+        $partner6->name = "some";
+
+        $this->assertTrue($partner->equals($partner2));
+        $this->assertFalse($partner->equals($partner3));
+        $this->assertFalse($partner->equals($partner4));
+        $this->assertTrue($partner->equals($partner5));
+        $this->assertFalse($partner->equals($partner6));
+    }
+
 }
