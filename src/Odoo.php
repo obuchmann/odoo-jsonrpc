@@ -44,7 +44,7 @@ class Odoo
     public function setContext(Context $context): void
     {
         $this->context = $context;
-        $this->object->setContext($context);
+        $this->object?->setContext($context);
     }
 
     private function authenticate()

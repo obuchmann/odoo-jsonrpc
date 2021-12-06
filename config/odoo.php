@@ -29,4 +29,10 @@ return [
     |--------------------------------------------------------------------------
     */
     'password' => env('ODOO_PASSWORD', ''),
+
+    'context' => [
+        'lang' => env('ODOO_LANG', null),
+        'timezone' => env('ODOO_TIMEZONE', null),
+        'companyId' => env('ODOO_COMPANY_ID', null),
+    ]
 ];

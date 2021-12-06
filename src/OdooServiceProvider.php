@@ -5,6 +5,7 @@ namespace Obuchmann\OdooJsonRpc;
 
 use Illuminate\Support\ServiceProvider;
 use Obuchmann\OdooJsonRpc\Odoo\Config;
+use Obuchmann\OdooJsonRpc\Odoo\Context;
 use Obuchmann\OdooJsonRpc\Odoo\OdooModel;
 
 
@@ -41,6 +42,10 @@ class OdooServiceProvider extends ServiceProvider
                 host: config('odoo.host', ''),
                 username: config('odoo.username', ''),
                 password: config('odoo.password', ''),
+            ), new Context(
+                lang: config('odoo.context.lang'),
+                timezone: config('odoo.context.timezone'),
+                companyId: config('odoo.context.companyId')
             ));
         });
     }
