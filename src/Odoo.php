@@ -108,6 +108,19 @@ class Odoo
         return $this->object->search($model, $domain, $offset, $limit, $order, $options);
     }
 
+    public function count(
+        string $model,
+        ?Domain $domain = null,
+        int $offset = 0,
+        ?int $limit = null,
+        ?string $order = null,
+        ?Options $options = null
+    ): int
+    {
+        $this->connect();
+        return $this->object->count($model, $domain, $offset, $limit, $order, $options);
+    }
+
     public function read(
         string $model,
         array $ids,
