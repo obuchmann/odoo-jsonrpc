@@ -3,6 +3,7 @@
 
 namespace Obuchmann\OdooJsonRpc\Odoo\Request;
 
+use Obuchmann\OdooJsonRpc\Exceptions\ConfigurationException;
 use Obuchmann\OdooJsonRpc\Odoo\Endpoint\ObjectEndpoint;
 use Obuchmann\OdooJsonRpc\Odoo\Request\Arguments\Domain;
 use Obuchmann\OdooJsonRpc\Odoo\Request\Arguments\HasDomain;
@@ -57,6 +58,14 @@ class RequestBuilder
             order: $this->getOrderString(),
             options: $this->options
         );
+    }
+
+    public function collect(): iterable
+    {
+        if(!function_exists('collect')){
+            throw new ConfigurationException("collect is not defined. Are you missing Laravel framework?");
+        }
+        return collect($this->get());
     }
 
     public function first(): ?object
