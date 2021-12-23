@@ -143,6 +143,21 @@ class Odoo
         return $this->object->searchRead($model, $domain, $fields, $offset, $limit, $order, $options);
     }
 
+    public function readGroup(
+        string $model,
+        array $groupBy,
+        ?Domain $domain = null,
+        ?array $fields = null,
+        int $offset = 0,
+        ?int $limit = null,
+        ?string $order = null,
+        ?Options $options = null
+    )
+    {
+        $this->connect();
+        return $this->object->readGroup($model, $groupBy, $domain, $fields, $offset, $limit, $order, $options);
+    }
+
     public function fieldsGet(
         string $model,
         ?array $fields = null,

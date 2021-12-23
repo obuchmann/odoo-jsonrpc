@@ -12,6 +12,7 @@ use Obuchmann\OdooJsonRpc\Odoo\Request\CheckAccessRights;
 use Obuchmann\OdooJsonRpc\Odoo\Request\Create;
 use Obuchmann\OdooJsonRpc\Odoo\Request\FieldsGet;
 use Obuchmann\OdooJsonRpc\Odoo\Request\Read;
+use Obuchmann\OdooJsonRpc\Odoo\Request\ReadGroup;
 use Obuchmann\OdooJsonRpc\Odoo\Request\Request;
 use Obuchmann\OdooJsonRpc\Odoo\Request\RequestBuilder;
 use Obuchmann\OdooJsonRpc\Odoo\Request\Search;
@@ -111,6 +112,19 @@ class ObjectEndpoint extends Endpoint
     {
         return $this->execute(new SearchRead(
             model: $model,
+            domain: $domain,
+            fields: $fields,
+            offset: $offset,
+            limit: $limit,
+            order: $order
+        ), $options);
+    }
+
+    public function readGroup(string $model, array $groupBy, ?Domain $domain = null, ?array $fields = null, int $offset = 0, ?int $limit = null, ?string $order = null, ?Options $options = null): array
+    {
+        return $this->execute(new ReadGroup(
+            model: $model,
+            groupBy: $groupBy,
             domain: $domain,
             fields: $fields,
             offset: $offset,

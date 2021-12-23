@@ -311,4 +311,38 @@ class OdooTest extends TestCase
 
     }
 
+    public function testAggregate()
+    {
+
+        $projectId = $this->odoo->model('project.project')
+            ->create([
+                'name' => 'Aggregate Stuff',
+                'allow_timesheets' => true
+            ]);
+
+        $time1 = $this->odoo->model('account.analytic.line')
+            ->create([
+                'project_id' => $projectId,
+                'date' => date('Y-m-d'),
+                'unit_amount' => 3
+            ]);
+
+        $time2 = $this->odoo->model('account.analytic.line')
+            ->create([
+                'project_id' => $projectId,
+                'date' => date('Y-m-d'),
+                'unit_amount' => 5
+            ]);
+
+        $response = $this->odoo->model('account.analytic.line')
+            ->where('project_id', '=', $projectId)
+            ->groupBy(['project_id'])
+            ->fields(['unit_amount:sum']) // Aggregation see: https://www.odoo.com/documentation/14.0/developer/reference/addons/orm.html#odoo.models.Model.read_group
+            ->get();
+
+        $this->assertEquals($response[0]->project_id[0], $projectId);
+        $this->assertEquals($response[0]->unit_amount, 8);
+
+    }
+
 }

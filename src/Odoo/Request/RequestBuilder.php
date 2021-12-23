@@ -7,6 +7,7 @@ use Obuchmann\OdooJsonRpc\Odoo\Endpoint\ObjectEndpoint;
 use Obuchmann\OdooJsonRpc\Odoo\Request\Arguments\Domain;
 use Obuchmann\OdooJsonRpc\Odoo\Request\Arguments\HasDomain;
 use Obuchmann\OdooJsonRpc\Odoo\Request\Arguments\HasFields;
+use Obuchmann\OdooJsonRpc\Odoo\Request\Arguments\HasGroupBy;
 use Obuchmann\OdooJsonRpc\Odoo\Request\Arguments\HasLimit;
 use Obuchmann\OdooJsonRpc\Odoo\Request\Arguments\HasOffset;
 use Obuchmann\OdooJsonRpc\Odoo\Request\Arguments\HasOptions;
@@ -15,7 +16,7 @@ use Obuchmann\OdooJsonRpc\Odoo\Request\Arguments\Options;
 
 class RequestBuilder
 {
-    use HasDomain, HasOrder, HasOffset, HasLimit, HasFields, HasOptions;
+    use HasDomain, HasOrder, HasOffset, HasLimit, HasFields, HasOptions, HasGroupBy;
 
     public function __construct(
         private ObjectEndpoint $endpoint,
@@ -35,6 +36,18 @@ class RequestBuilder
 
     public function get(): array
     {
+        if($this->hasGroupBy()){
+            return $this->endpoint->readGroup(
+                $this->model,
+                groupBy: $this->groupBy,
+                domain: $this->domain,
+                fields: $this->fields,
+                offset: $this->offset,
+                limit: $this->limit,
+                order: $this->getOrderString(),
+                options: $this->options
+            );
+        }
         return $this->endpoint->searchRead(
             $this->model,
             domain: $this->domain,
