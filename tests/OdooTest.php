@@ -139,7 +139,7 @@ class OdooTest extends TestCase
         $this->assertNull($items[0]->email ?? null);
     }
 
-    public function testSearchRead()
+    public function testModelSearchRead()
     {
         $items = $this->odoo
             ->model('res.partner')
@@ -151,7 +151,7 @@ class OdooTest extends TestCase
         $this->assertNotNull($items[0]->name);
     }
 
-    public function testSearchReadFields()
+    public function testModelSearchReadFields()
     {
         $items = $this->odoo
             ->model('res.partner')
