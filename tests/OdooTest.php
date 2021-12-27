@@ -4,6 +4,7 @@ namespace Obuchmann\OdooJsonRpc\Tests;
 
 use Obuchmann\OdooJsonRpc\Exceptions\AuthenticationException;
 use Obuchmann\OdooJsonRpc\Odoo;
+use Obuchmann\OdooJsonRpc\Odoo\Request\Arguments\Domain;
 use Obuchmann\OdooJsonRpc\Odoo\Request\Arguments\Options;
 
 class OdooTest extends TestCase
@@ -50,7 +51,23 @@ class OdooTest extends TestCase
         $this->assertTrue($check);
     }
 
-    public function testCount()
+    public function testDirectCount()
+    {
+        $amount = $this->odoo->count('res.partner');
+        $this->assertEquals('integer', gettype($amount));
+    }
+    
+    public function testDirectCountWhere()
+    {
+        $amount = $this->odoo->count('res.partner');
+
+        $customerAmountDomain = (new Domain())->where('is_company', '=', true);
+        $customerAmount = $this->odoo->count('res.partner', $customerAmountDomain);
+
+        $this->assertLessThan($amount, $customerAmount);
+    }
+
+    public function testModelCount()
     {
         $amount = $this->odoo
             ->model('res.partner')
@@ -58,7 +75,7 @@ class OdooTest extends TestCase
         $this->assertEquals('integer', gettype($amount));
     }
 
-    public function testCountWhere()
+    public function testModelCountWhere()
     {
         $amount = $this->odoo
             ->model('res.partner')
@@ -104,6 +121,23 @@ class OdooTest extends TestCase
         $this->assertIsObject($item);
     }
 
+    public function testDirectSearchRead()
+    {
+        $items = $this->odoo->searchRead('res.partner', null, null, 0, 5);
+
+        $this->assertIsArray($items);
+        $this->assertCount(5, $items);
+        $this->assertNotNull($items[0]->name);
+    }
+
+    public function testDirectSearchReadFields()
+    {
+        $items = $this->odoo->searchRead('res.partner', null, ['name'], 0, 5);
+
+        $this->assertIsArray($items);
+        $this->assertCount(5, $items);
+        $this->assertNull($items[0]->email ?? null);
+    }
 
     public function testSearchRead()
     {
