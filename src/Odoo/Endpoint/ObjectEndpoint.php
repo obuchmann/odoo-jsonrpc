@@ -79,7 +79,7 @@ class ObjectEndpoint extends Endpoint
     {
         return $this->execute(new Search(
             model: $model,
-            domain: $domain,
+            domain: $domain ?? new Domain(),
             offset: $offset,
             limit: $limit,
             order: $order,
@@ -91,7 +91,7 @@ class ObjectEndpoint extends Endpoint
     {
         return $this->execute(new Search(
             model: $model,
-            domain: $domain,
+            domain: $domain ?? new Domain,
             offset: $offset,
             limit: $limit,
             order: $order
@@ -112,7 +112,7 @@ class ObjectEndpoint extends Endpoint
     {
         return $this->execute(new SearchRead(
             model: $model,
-            domain: $domain,
+            domain: $domain ?? new Domain,
             fields: $fields,
             offset: $offset,
             limit: $limit,
