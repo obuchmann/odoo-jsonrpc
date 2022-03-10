@@ -30,7 +30,11 @@ class OdooModel
 
     public static function find(int $id): ?static
     {
-        return static::hydrate(self::$odoo->find(static::model(), $id, static::fieldNames()));
+        $odooInstance = self::$odoo->find(static::model(), $id, static::fieldNames());
+        if(null === $odooInstance){
+            return null;
+        }
+        return static::hydrate($odooInstance);
     }
 
     public static function read(array $ids): array
