@@ -6,6 +6,7 @@ namespace Obuchmann\OdooJsonRpc\JsonRpc;
 
 use GuzzleHttp\Exception\GuzzleException;
 use Obuchmann\OdooJsonRpc\Exceptions\OdooException;
+use Obuchmann\OdooJsonRpc\Exceptions\LaravelOdooException;
 use Psr\Http\Message\ResponseInterface;
 
 class Client
@@ -45,6 +46,7 @@ class Client
         }
         $this->lastResponse = $response;
 
+        
         return match($response->getStatusCode()) {
             200 => $this->makeResponse($response), // TODO ->result kann auch nicht definiert sein. Normal wenn ->error gegeben ist.
             default => throw new OdooException($response)
@@ -67,7 +69,8 @@ class Client
             if(isset($json->error->data) && isset($json->error->data->message)){
                 $message .= ': '.$json->error->data->message;
             }
-            throw new OdooException($response, $message, $json->error->code ?? null);
+
+            throw new LaravelOdooException($message ?? null);
         }
         return $json->result;
     }
