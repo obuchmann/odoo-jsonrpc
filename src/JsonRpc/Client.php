@@ -69,6 +69,6 @@ class Client
             }
             throw new OdooException($response, $message, $json->error->code ?? null);
         }
-        return $json->result;
+        return $json->result ?? $json->id;
     }
 }
