@@ -64,6 +64,9 @@ class Controller{
 Laravel Models are implemented with Attributes
 
 ```php
+use Obuchmann\OdooJsonRpc\Attributes\Model;
+use Obuchmann\OdooJsonRpc\Odoo\OdooModel;
+
 #[Model('res.partner')]
 class Partner extends OdooModel
 {
