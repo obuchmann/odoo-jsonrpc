@@ -33,21 +33,10 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
      */
     protected function setDemoCredentials()
     {
-
-        $client = new \GuzzleHttp\Client();
-        $startRequest = $client->request('POST', 'https://demo.odoo.com/start', [
-            'headers' => [
-                'Content-Type' => 'application/json'
-            ],
-            'body' => "{}"
-        ]);
-
-        $info = json_decode($startRequest->getBody())->result;
-
-        $this->host = getenv('ODOO_HOST') ?: $info->host;
-        $this->username = getenv('ODOO_USERNAME') ?: $info->user;
-        $this->password = getenv('ODOO_PASSWORD') ?: $info->password;
-        $this->database = getenv('ODOO_DATABASE') ?: $info->database;
+        $this->host = getenv('ODOO_HOST');
+        $this->username = getenv('ODOO_USERNAME');
+        $this->password = getenv('ODOO_PASSWORD');
+        $this->database = getenv('ODOO_DATABASE');
     }
 
 }
