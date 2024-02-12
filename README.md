@@ -19,6 +19,74 @@ php artisan vendor:publish --provider="Obuchmann\OdooJsonRpc\OdooServiceProvider
 
 ## Usage
 
+### Basic Usage
+
+```php
+use Obuchmann\OdooJsonRpc\Odoo;
+use Obuchmann\OdooJsonRpc\Odoo\Request\Arguments\Domain;
+
+$this->host = 'http://localhost:8069';
+$this->username = 'admin';
+$this->password = 'password';
+$this->database = 'odoo';
+
+// Connect to Odoo
+$odoo = new Odoo(new Odoo\Config($database, $host, $username, $password));
+$odoo->connect();
+
+
+// Check Access rights (bool)
+$check = $odoo->checkAccessRights('res.partner', 'read');
+
+// Check Access rights in model syntax
+
+$check = $odoo->model('res.partner')
+            ->can('read');
+            
+// Use Domain for Search
+$isCompanyDomain = (new Domain())->where('is_company', '=', true);
+$companyIds = $odoo->search('res.partner', $isCompanyDomain);
+
+// read ids
+$companies = $odoo->read('res.partner', $companyIds);
+
+// search_read with model Syntax
+$companies = $odoo->model('res.partner')
+            ->where('is_company', '=', true)
+            ->get();
+            
+// search_read with single item
+$company = $odoo->model('res.partner')
+            ->where('is_company', '=', true)
+            ->where('name', '=', 'My Company')
+            ->first();
+            
+// create with model syntax
+$partner = $odoo->model('res.partner')
+            ->create([
+                'name' => 'My Company',
+                'is_company' => true
+            ]);
+            
+// update with model syntax
+$partner = $odoo->model('res.partner')
+            ->where('name', '=', 'My Company')
+            ->update([
+                'name' => 'My New Company'
+            ]);
+// direct update by id            
+$myCompanyId = 1;
+$partner = $odoo->updateById('res.partner', $myCompanyId, [
+    'name' => 'My New Company'
+]);
+
+// delete by id
+$odoo->deleteById('res.partner', $myCompanyId);
+
+
+```
+
+
 ### Laravel Usage
 
 ```php
