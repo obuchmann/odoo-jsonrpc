@@ -166,6 +166,54 @@ class Controller{
 }
 ```
 
+### Casts
+
+You can define a cast for your models. This is useful if you want to convert odoo fields to a specific type. There are some predefined casts for date and datetime fields.
+
+Casts are global and can be registered in the Odoo class.
+
+```php
+
+// The basic datetime cast
+\Obuchmann\OdooJsonRpc\Odoo::registerCast(new Odoo\Casts\DateTimeCast());
+
+// a datetime cast that respects the timezone
+\Obuchmann\OdooJsonRpc\Odoo::registerCast(new Odoo\Casts\DateTimeCast('Europe/Berlin'));
+
+
+// you can write custom casts by extending the Obuchmann\OdooJsonRpc\Odoo\Casts\Cast class
+// example DateTimeCast
+
+class DateTimeCast extends Cast
+{
+
+    public function getType(): string
+    {
+        return \DateTime::class;
+    }
+
+    public function cast($raw)
+    {
+        if($raw){
+            try {
+                return new \DateTime($raw);
+            } catch (\Exception) {} // If no valid Date return null
+        }
+        return null;
+    }
+
+    public function uncast($value)
+    {
+        if($value instanceof \DateTime){
+            return $value->format('Y-m-d H:i:s');
+        }
+    }
+} 
+
+
+
+```
+
 
 For more examples take a look at the tests directory.
 
