@@ -162,6 +162,7 @@ class ModelTest extends TestCase
 
     public function testCast()
     {
+        CastHandler::reset();
         Odoo::registerCast(new Odoo\Casts\DateTimeCast());
 
         $item = PurchaseOrder::find(1);
@@ -171,9 +172,24 @@ class ModelTest extends TestCase
 
     }
 
+    public function testDateTimezoneCast()
+    {
+        CastHandler::reset();
+        Odoo::registerCast(new Odoo\Casts\DateTimeTimezoneCast(new \DateTimeZone('Europe/Vienna')));
+
+        $item2 = PurchaseOrder::find(1);
+
+        $this->assertNotNull($item2->orderDate);
+        $this->assertInstanceOf(\DateTime::class, $item2->orderDate);
+
+        $this->assertEquals("Europe/Vienna", $item2->orderDate->getTimezone()->getName());
+
+    }
+
 
     public function testNullableCast()
     {
+        CastHandler::reset();
         Odoo::registerCast(new Odoo\Casts\DateTimeCast());
 
         $item = PurchaseOrder::find(1);

@@ -25,7 +25,7 @@ class Odoo
 
     public function __construct(
         protected Config $config,
-        ?Context $context = null
+        ?Context         $context = null
     )
     {
         $this->common = new CommonEndpoint($this->config);
@@ -37,6 +37,11 @@ class Odoo
         CastHandler::registerCast($cast);
     }
 
+
+    public function getContext(): Context
+    {
+        return $this->context;
+    }
 
     /**
      * @param Context $context
@@ -55,7 +60,7 @@ class Odoo
 
     public function connect(): void
     {
-        if(!$this->uid){
+        if (!$this->uid) {
             $this->authenticate();
         }
     }
@@ -71,8 +76,8 @@ class Odoo
     }
 
     public function checkAccessRights(
-        string $model,
-        string $permission,
+        string   $model,
+        string   $permission,
         ?Options $options = null
     ): bool
     {
@@ -81,8 +86,8 @@ class Odoo
     }
 
     public function can(
-        string $model,
-        string $permission,
+        string   $model,
+        string   $permission,
         ?Options $options = null
     ): bool
     {
@@ -96,11 +101,11 @@ class Odoo
     }
 
     public function search(
-        string $model,
-        ?Domain $domain = null,
-        int $offset = 0,
-        ?int $limit = null,
-        ?string $order = null,
+        string   $model,
+        ?Domain  $domain = null,
+        int      $offset = 0,
+        ?int     $limit = null,
+        ?string  $order = null,
         ?Options $options = null
     ): array
     {
@@ -109,11 +114,11 @@ class Odoo
     }
 
     public function count(
-        string $model,
-        ?Domain $domain = null,
-        int $offset = 0,
-        ?int $limit = null,
-        ?string $order = null,
+        string   $model,
+        ?Domain  $domain = null,
+        int      $offset = 0,
+        ?int     $limit = null,
+        ?string  $order = null,
         ?Options $options = null
     ): int
     {
@@ -122,9 +127,9 @@ class Odoo
     }
 
     public function read(
-        string $model,
-        array $ids,
-        array $fields = [],
+        string   $model,
+        array    $ids,
+        array    $fields = [],
         ?Options $options = null
     ): array
     {
@@ -133,9 +138,9 @@ class Odoo
     }
 
     public function find(
-        string $model,
-        int $id,
-        array $fields = [],
+        string   $model,
+        int      $id,
+        array    $fields = [],
         ?Options $options = null
     ): ?object
     {
@@ -143,12 +148,12 @@ class Odoo
     }
 
     public function searchRead(
-        string $model,
-        ?Domain $domain = null,
-        ?array $fields = null,
-        int $offset = 0,
-        ?int $limit = null,
-        ?string $order = null,
+        string   $model,
+        ?Domain  $domain = null,
+        ?array   $fields = null,
+        int      $offset = 0,
+        ?int     $limit = null,
+        ?string  $order = null,
         ?Options $options = null
     ): array
     {
@@ -157,13 +162,13 @@ class Odoo
     }
 
     public function readGroup(
-        string $model,
-        array $groupBy,
-        ?Domain $domain = null,
-        ?array $fields = null,
-        int $offset = 0,
-        ?int $limit = null,
-        ?string $order = null,
+        string   $model,
+        array    $groupBy,
+        ?Domain  $domain = null,
+        ?array   $fields = null,
+        int      $offset = 0,
+        ?int     $limit = null,
+        ?string  $order = null,
         ?Options $options = null
     )
     {
@@ -172,9 +177,9 @@ class Odoo
     }
 
     public function fieldsGet(
-        string $model,
-        ?array $fields = null,
-        ?array $attributes = null,
+        string   $model,
+        ?array   $fields = null,
+        ?array   $attributes = null,
         ?Options $options = null
     ): object
     {
@@ -183,9 +188,9 @@ class Odoo
     }
 
     public function listModelFields(
-        string $model,
-        ?array $fields = null,
-        ?array $attributes = null,
+        string   $model,
+        ?array   $fields = null,
+        ?array   $attributes = null,
         ?Options $options = null
     ): object
     {
@@ -193,8 +198,8 @@ class Odoo
     }
 
     public function create(
-        string $model,
-        array $values,
+        string   $model,
+        array    $values,
         ?Options $options = null
     ): bool|int
     {
@@ -203,8 +208,8 @@ class Odoo
     }
 
     public function unlink(
-        string $model,
-        array $ids,
+        string   $model,
+        array    $ids,
         ?Options $options = null
     ): bool
     {
@@ -213,8 +218,8 @@ class Odoo
     }
 
     public function deleteById(
-        string $model,
-        int $id,
+        string   $model,
+        int      $id,
         ?Options $options = null
     ): bool
     {
@@ -222,9 +227,9 @@ class Odoo
     }
 
     public function write(
-        string $model,
-        array $ids,
-        array $values,
+        string   $model,
+        array    $ids,
+        array    $values,
         ?Options $options = null
     ): bool
     {
@@ -233,9 +238,9 @@ class Odoo
     }
 
     public function updateById(
-        string $model,
-        int $id,
-        array $values,
+        string   $model,
+        int      $id,
+        array    $values,
         ?Options $options = null
     ): bool
     {
@@ -243,7 +248,7 @@ class Odoo
     }
 
     public function execute(
-        Request $request,
+        Request  $request,
         ?Options $options = null
     )
     {

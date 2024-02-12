@@ -15,6 +15,12 @@ class CastHandler
      */
     private static array $wildcardHandlers = [];
 
+    public static function reset()
+    {
+        self::$classHandlers = [];
+        self::$wildcardHandlers = [];
+    }
+
     public static function hasCasts():bool {
         return !empty(self::$classHandlers) || !empty(self::$wildcardHandlers);
     }
