@@ -255,6 +255,24 @@ class Odoo
         $this->connect();
         return $this->object->execute($request, $options);
     }
+    public function callOdooMethod(Odoo $odoo, string $model, string $method, array $args = [], ?Options $options = null)
+    {
+        $request = new class($model, $method, $args) extends Request {
+            private array $args;
 
+            public function __construct(string $model, string $method, array $args)
+            {
+                parent::__construct($model, $method);
+                $this->args = $args;
+            }
+
+            public function toArray(): array
+            {
+                return $this->args;
+            }
+        };
+
+        return $odoo->execute($request, $options);
+    }
 
 }
