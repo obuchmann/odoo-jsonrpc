@@ -256,5 +256,29 @@ class Odoo
         return $this->object->execute($request, $options);
     }
 
+    public function executeKw(
+        string $model,
+        string $method,
+        array  $args,
+        ?Options $options = null
+    )
+    {
+        $request = new class($model, $method, $args) extends Request {
+            public function __construct(
+                string $model,
+                string $method,
+                protected array  $args
+            )
+            {
+                parent::__construct($model, $method);
+            }
+
+            public function toArray(): array
+            {
+                return $this->args;
+            }
+        };
+        return $this->execute($request, $options);
+    }
 
 }

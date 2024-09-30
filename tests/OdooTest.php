@@ -320,6 +320,18 @@ class OdooTest extends TestCase
         $this->assertCount(3, $ids);
     }
 
+    public function testCallCustomMethodOverlay(){
+        $ids = $this->odoo->executeKw('res.partner', 'search', [
+            [
+                ['is_company', '=', true]
+            ]
+        ], new Options([
+            'limit' => 3
+        ]));
+        $this->assertIsArray($ids);
+        $this->assertCount(3, $ids);
+    }
+
 
     public function testOr()
     {
