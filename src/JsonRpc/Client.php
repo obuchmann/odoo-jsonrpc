@@ -13,7 +13,7 @@ class Client
     private \GuzzleHttp\Client $client;
     private ?ResponseInterface $lastResponse = null;
 
-    public function __construct(string $baseUri, private string $service = 'object')
+    public function __construct(string $baseUri, private string $service = 'object', $sslVerify = true)
     {
 
         $this->client = new \GuzzleHttp\Client([
@@ -21,7 +21,7 @@ class Client
                 'Content-Type' => 'application/json',
             ],
             'base_uri' => $baseUri,
-            'verify' => config('odoo.ssl_verify',true),
+            'verify' => $sslVerify,
         ]);
 
     }

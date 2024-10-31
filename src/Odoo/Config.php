@@ -13,7 +13,8 @@ class Config
         protected string $database,
         protected string $host,
         protected string $username,
-        protected string $password)
+        protected string $password,
+        protected bool $sslVerify)
     {
 
     }
@@ -50,7 +51,13 @@ class Config
         return $this->password;
     }
 
-
+    /**
+     * @return boolean
+     */
+    public function getSslVerify(): string
+    {
+        return $this->sslVerify;
+    }
 
 
 }

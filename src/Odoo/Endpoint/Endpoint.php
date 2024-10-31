@@ -25,7 +25,7 @@ class Endpoint
     public function getClient(bool $fresh = false): Client
     {
         if ($fresh || null == $this->client) {
-            $this->client = new Client($this->getConfig()->getHost(), $this->service);
+            $this->client = new Client($this->getConfig()->getHost(), $this->service, $this->getConfig()->getSslVerify());
         }
         return $this->client;
     }
