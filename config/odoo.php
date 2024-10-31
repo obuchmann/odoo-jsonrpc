@@ -34,5 +34,12 @@ return [
         'lang' => env('ODOO_LANG', null),
         'timezone' => env('ODOO_TIMEZONE', null),
         'companyId' => env('ODOO_COMPANY_ID', null),
-    ]
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Use SSL Verify
+    |--------------------------------------------------------------------------
+    */
+    'ssl_verify' => (bool) env('ODOO_SSL_VERIFY', true)
 ];

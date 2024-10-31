@@ -21,6 +21,7 @@ class Client
                 'Content-Type' => 'application/json',
             ],
             'base_uri' => $baseUri,
+            'verify' => config('odoo.ssl_verify',true),
         ]);
 
     }
