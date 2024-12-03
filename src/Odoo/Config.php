@@ -14,10 +14,8 @@ class Config
         protected string $host,
         protected string $username,
         protected string $password,
-        protected bool $sslVerify)
-    {
-
-    }
+        protected bool $sslVerify
+    ) {}
 
     /**
      * @return string
@@ -54,10 +52,8 @@ class Config
     /**
      * @return boolean
      */
-    public function getSslVerify(): string
+    public function getSslVerify(): bool
     {
         return $this->sslVerify;
     }
-
-
 }
