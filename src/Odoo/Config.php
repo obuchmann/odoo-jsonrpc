@@ -14,7 +14,7 @@ class Config
         protected string $host,
         protected string $username,
         protected string $password,
-        protected bool $sslVerify
+        protected bool $sslVerify = true
     ) {}
 
     /**
