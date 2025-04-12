@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Obuchmann\OdooJsonRpc\Odoo\Models;
-
 
 use JetBrains\PhpStorm\ExpectedValues;
 use Obuchmann\OdooJsonRpc\Odoo\OdooModel;
@@ -10,6 +8,9 @@ use Obuchmann\OdooJsonRpc\Odoo\Request\RequestBuilder;
 
 class ModelQuery
 {
+    /** @var array<string> Relations to eager load */
+    protected array $with = [];
+
     public function __construct(
         protected OdooModel $model,
         protected RequestBuilder $builder,
@@ -17,9 +18,16 @@ class ModelQuery
     {
     }
 
+    /**
+     * Create a new instance of the model from raw Odoo data.
+     * @param object $values
+     * @return OdooModel
+     */
     private function newInstance(object $values): OdooModel
     {
-        return $this->model->hydrate($values);
+        // Use the hydrate method from the *specific* model class
+        $class = get_class($this->model);
+        return $class::hydrate($values);
     }
 
 
@@ -28,20 +36,57 @@ class ModelQuery
         return $this->builder->can($permission);
     }
 
-    public function get(): array
+    /**
+     * Specify relationships to eager load.
+     *
+     * @param string ...$relations
+     * @return $this
+     */
+    public function with(string ...$relations): static
     {
-        return array_map(fn($item) => $this->newInstance($item), $this->builder->get());
+        $this->with = array_unique(array_merge($this->with, $relations));
+        return $this;
     }
 
+    /**
+     * Execute the query and get the results.
+     *
+     * @return array<OdooModel>
+     */
+    public function get(): array
+    {
+        $results = $this->builder->get(); // Returns array of stdClass objects
+        $models = array_map(fn($item) => $this->newInstance($item), $results);
+
+        // Eager load relations if requested
+        if (!empty($this->with)) {
+             $modelClass = get_class($this->model);
+             $models = $modelClass::loadRelations($models, ...$this->with);
+        }
+
+        return $models; // Should be an array of OdooModel instances
+    }
+
+    /**
+     * Execute the query and get the first result.
+     *
+     * @return OdooModel|null
+     */
     public function first(): ?OdooModel
     {
-        $item = $this->builder->first();
+        $item = $this->builder->first(); // Returns stdClass object or null
         if (null !== $item) {
-            return $this->newInstance($item);
+            $model = $this->newInstance($item);
+
+            // Eager load relations if requested
+             if (!empty($this->with)) {
+                 // Use the instance load method for a single model
+                 $model->load(...$this->with);
+             }
+            return $model;
         }
         return null;
     }
-
     public function count(): int
     {
         return $this->builder->count();
@@ -92,4 +137,5 @@ class ModelQuery
         $this->builder->fields($fields);
         return $this;
     }
+
 }
