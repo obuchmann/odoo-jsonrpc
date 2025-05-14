@@ -30,7 +30,7 @@ return [
     | Go to settings -> users -> your user -> use the id from the url
     |--------------------------------------------------------------------------
     */
-    'user_id' => env('ODOO_USER_ID', NULL),
+    'user_id' => env('ODOO_USER_ID'),
 
     /*
     |--------------------------------------------------------------------------
