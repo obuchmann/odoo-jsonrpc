@@ -30,6 +30,13 @@ class Odoo
     {
         $this->common = new CommonEndpoint($this->config);
         $this->context = $context ?? new Context();
+
+        $configuredUid = $this->config->getUid();
+        if (!empty($configuredUid)){
+            $this->uid = $configuredUid;
+            $this->object = new ObjectEndpoint($this->config, $this->context, $this->uid);
+        }
+
     }
 
     public static function registerCast(Cast $cast)

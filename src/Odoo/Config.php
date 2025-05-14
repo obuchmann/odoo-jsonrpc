@@ -14,6 +14,7 @@ class Config
         protected string $host,
         protected string $username,
         protected string $password,
+        protected ?int $uid = null,
         protected bool $sslVerify = true
     ) {}
 
@@ -31,6 +32,14 @@ class Config
     public function getHost(): string
     {
         return $this->host;
+    }
+
+    /**
+     * @return int
+     */
+    public function getUid(): ?int
+    {
+        return $this->uid;
     }
 
     /**

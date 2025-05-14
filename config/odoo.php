@@ -25,6 +25,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | User id *optional*
+    | Used as uid in API requests. Setting the user id improves API performance.
+    | Go to settings -> users -> your user -> use the id from the url
+    |--------------------------------------------------------------------------
+    */
+    'user_id' => env('ODOO_USER_ID', NULL),
+
+    /*
+    |--------------------------------------------------------------------------
     | User password
     |--------------------------------------------------------------------------
     */

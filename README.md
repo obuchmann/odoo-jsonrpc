@@ -32,6 +32,10 @@ $this->database = 'odoo';
 
 // Connect to Odoo
 $odoo = new Odoo(new Odoo\Config($database, $host, $username, $password));
+
+// Or fix the uid, saving you an authentication request for each connect().
+// $uid = 2;
+//$odoo = new Odoo(new Odoo\Config($database, $host, $username, $password, $uid));
 $odoo->connect();
 
 
