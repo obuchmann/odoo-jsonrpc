@@ -17,7 +17,7 @@ class OdooException extends RuntimeException
      * @param int $code
      * @param Throwable|null $previous
      */
-    #[Pure] public function __construct(protected ?ResponseInterface $response, string $message = "", $code = 0, Throwable $previous = null)
+    #[Pure] public function __construct(protected ?ResponseInterface $response, string $message = "", $code = 0, ?Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }
