@@ -127,6 +127,43 @@ class Controller{
 }
 ```
 
+### Fixed User ID for Performance
+
+In scenarios where performance is critical and the Odoo user context is static (e.g., in some Dockerized enterprise deployments or for specific integration users), you can bypass repeated authentication calls by using a fixed User ID.
+
+This is achieved by setting the `ODOO_FIXED_USER_ID` environment variable or the `fixed_user_id` key in the configuration file (`config/odoo.php` in Laravel projects).
+
+**How it works:**
+
+If `fixed_user_id` is set to a valid, positive integer, the library will skip the standard username/password authentication step (the `common.authenticate` RPC call to Odoo) and will use this provided User ID for all subsequent operations. This can reduce latency by avoiding an extra network request for authentication on each instantiation or connection attempt.
+
+**Configuration:**
+
+1.  **Environment Variable:**
+    ```bash
+    ODOO_FIXED_USER_ID=123
+    ```
+
+2.  **Configuration File (e.g., `config/odoo.php` for Laravel):**
+    ```php
+    // config/odoo.php
+    return [
+        // ... other configurations
+        'host' => env('ODOO_HOST',''),
+        'database' => env('ODOO_DATABASE',''),
+        'username' => env('ODOO_USERNAME', ''),
+        'password' => env('ODOO_PASSWORD', ''),
+        'fixed_user_id' => env('ODOO_FIXED_USER_ID', null), // <--- Add this line
+        // ... other configurations
+    ];
+    ```
+
+**Important Considerations:**
+
+*   When `fixed_user_id` is used, the `username` and `password` configurations are ignored for the purpose of obtaining the User ID.
+*   Ensure the provided User ID has the necessary access rights in Odoo for the operations your application will perform.
+*   This feature is intended for specific use cases. For most applications, especially those with dynamic user contexts, the standard authentication flow is more appropriate.
+
 ### Laravel Models
 
 Laravel Models are implemented with Attributes

@@ -391,4 +391,67 @@ class OdooTest extends TestCase
 
     }
 
+    public function testAuthenticationWithFixedUserId()
+    {
+        $fixedUserId = 1;
+        $config = new Odoo\Config(
+            $this->database,
+            $this->host,
+            'invalid-user',
+            'invalid-pass',
+            true,
+            $fixedUserId
+        );
+        $odoo = new Odoo($config);
+        $odoo->connect();
+        $this->assertEquals($fixedUserId, $odoo->getUid());
+    }
+
+    public function testAuthenticationFallsBackToNormalWithNullFixedUserId()
+    {
+        $config = new Odoo\Config(
+            $this->database,
+            $this->host,
+            $this->username,
+            $this->password,
+            true,
+            null
+        );
+        $odoo = new Odoo($config);
+        $odoo->connect();
+        $this->assertIsInt($odoo->getUid());
+        $this->assertGreaterThan(0, $odoo->getUid());
+    }
+
+    public function testAuthenticationFallsBackToNormalWithZeroFixedUserId()
+    {
+        $config = new Odoo\Config(
+            $this->database,
+            $this->host,
+            $this->username,
+            $this->password,
+            true,
+            0
+        );
+        $odoo = new Odoo($config);
+        $odoo->connect();
+        $this->assertIsInt($odoo->getUid());
+        $this->assertGreaterThan(0, $odoo->getUid());
+    }
+
+    public function testAuthenticationFallsBackToNormalWithNegativeFixedUserId()
+    {
+        $config = new Odoo\Config(
+            $this->database,
+            $this->host,
+            $this->username,
+            $this->password,
+            true,
+            -5
+        );
+        $odoo = new Odoo($config);
+        $odoo->connect();
+        $this->assertIsInt($odoo->getUid());
+        $this->assertGreaterThan(0, $odoo->getUid());
+    }
 }

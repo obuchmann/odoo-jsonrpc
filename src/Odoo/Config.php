@@ -8,14 +8,18 @@ use JetBrains\PhpStorm\Immutable;
 #[Immutable]
 class Config
 {
+    protected ?int $fixedUserId = null;
 
     public function __construct(
         protected string $database,
         protected string $host,
         protected string $username,
         protected string $password,
-        protected bool $sslVerify = true
-    ) {}
+        protected bool $sslVerify = true,
+        ?int $fixedUserId = null
+    ) {
+        $this->fixedUserId = $fixedUserId;
+    }
 
     /**
      * @return string
@@ -55,5 +59,10 @@ class Config
     public function getSslVerify(): bool
     {
         return $this->sslVerify;
+    }
+
+    public function getFixedUserId(): ?int
+    {
+        return $this->fixedUserId;
     }
 }

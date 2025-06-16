@@ -14,6 +14,11 @@ class CommonEndpoint extends Endpoint
 
     public function authenticate(): int
     {
+        $fixedUid = $this->getConfig()->getFixedUserId();
+        if ($fixedUid !== null && $fixedUid > 0) {
+            return $fixedUid;
+        }
+
         $client = $this->getClient(true);
         $uid = $client
             ->authenticate(
