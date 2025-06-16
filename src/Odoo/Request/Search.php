@@ -21,7 +21,7 @@ class Search extends Request
      * @param int $offset
      * @param int|null $limit
      * @param string|null $order
-     * @param bool|null $count
+     * @param bool $count // Changed default to false
      */
     public function __construct(
         string $model,
@@ -29,20 +29,26 @@ class Search extends Request
         protected int $offset = 0,
         protected ?int $limit = null,
         protected ?string $order = null,
-        protected ?bool $count = null,
+        protected bool $count = false, // Changed default to false
     )
     {
-        parent::__construct( $model, 'search');
+        parent::__construct( $model, $count ? 'search_count' : 'search'); // Dynamically set method
     }
 
     public function toArray(): array
     {
+        if ($this->count) {
+            return [
+                $this->domain->toArray(),
+            ];
+        }
+
         return [
             $this->domain->toArray(),
             $this->offset,
             $this->limit,
             $this->order,
-            $this->count
+            // $this->count is no longer sent as a parameter for 'search'
         ];
     }
 }
