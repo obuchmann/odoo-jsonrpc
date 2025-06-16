@@ -80,6 +80,12 @@ class Client
             }
             throw new OdooException($response, $message, $json->error->code ?? null);
         }
-        return $json->result ?? $json->id;
+        if(property_exists($json, 'result')){
+            return $json->result;
+        }
+        if(property_exists($json, 'id')){
+            return $json->id;
+        }
+        return null;
     }
 }
