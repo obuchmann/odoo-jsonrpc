@@ -11,6 +11,7 @@ use Obuchmann\OdooJsonRpc\Tests\Models\Partner;
 use Obuchmann\OdooJsonRpc\Tests\Models\Product;
 use Obuchmann\OdooJsonRpc\Tests\Models\PurchaseOrder;
 use Obuchmann\OdooJsonRpc\Tests\Models\PurchaseOrderLine;
+use Obuchmann\OdooJsonRpc\Tests\Models\StockPicking;
 
 class ModelTest extends TestCase
 {
@@ -248,6 +249,101 @@ class ModelTest extends TestCase
         $this->assertFalse($partner->equals($partner4));
         $this->assertTrue($partner->equals($partner5));
         $this->assertFalse($partner->equals($partner6));
+    }
+
+    public function testHasManyRelationHydration()
+    {
+
+        \Obuchmann\OdooJsonRpc\Odoo::registerCast(new Odoo\Casts\DateTimeCast());
+
+        // 1. Set up a Partner for the PurchaseOrder
+        $testPartner = new Partner();
+        $testPartner->name = 'Test Partner for PO';
+        $testPartner->save();
+        $this->assertNotNull($testPartner->id, "Failed to create test partner.");
+
+        // 2. Set up a Product for PurchaseOrderLines
+        $testProduct = new Product();
+        $testProduct->name = 'Test Product for POLine';
+        $testProduct->save();
+        $this->assertNotNull($testProduct->id, "Failed to create test product.");
+
+        // 3. Create PurchaseOrder
+        $order = new PurchaseOrder();
+        $order->partnerId = $testPartner->id;
+        // Minimal required fields for PO, assuming orderDate might be set by Odoo
+        $order->save();
+        $this->assertNotNull($order->id, "Failed to create purchase order.");
+
+        // 4. Create PurchaseOrderLine instances
+        $line1 = new PurchaseOrderLine();
+        $line1->orderId = $order->id;
+        $line1->name = 'Line 1';
+        $line1->productId = $testProduct->id;
+        $line1->productQuantity = 2;
+        $line1->priceUnit = 10.0;
+        $line1->save();
+        $this->assertNotNull($line1->id, "Failed to create purchase order line 1.");
+
+        $line2 = new PurchaseOrderLine();
+        $line2->orderId = $order->id;
+        $line2->name = 'Line 2';
+        $line2->productId = $testProduct->id;
+        $line2->productQuantity = 5;
+        $line2->priceUnit = 20.0;
+        $line2->save();
+        $this->assertNotNull($line2->id, "Failed to create purchase order line 2.");
+
+        // 5. Fetch the PurchaseOrder
+        /** @var PurchaseOrder $fetchedOrder */
+        $fetchedOrder = PurchaseOrder::find($order->id);
+        $this->assertNotNull($fetchedOrder, "Failed to fetch purchase order.");
+
+        // 6. Assertions for the 'lines' property (assuming 'lines' is the property name for HasMany PurchaseOrderLine)
+        // The actual property name for lines in PurchaseOrder model is 'lines'
+        #$this->assertIsArrayAccess($fetchedOrder->lines, "Order lines property should be an array.");
+        $this->assertCount(2, $fetchedOrder->lines, "Should have 2 order lines.");
+
+        foreach ($fetchedOrder->lines as $fetchedLine) {
+            $this->assertInstanceOf(PurchaseOrderLine::class, $fetchedLine, "Each line should be an instance of PurchaseOrderLine.");
+            $this->assertNotNull($fetchedLine->id, "Fetched line should have an ID.");
+            $this->assertNotNull($fetchedLine->name, "Fetched line should have a name.");
+            $this->assertTrue(in_array($fetchedLine->id, [$line1->id, $line2->id]));
+            if ($fetchedLine->id === $line1->id) {
+                $this->assertEquals($line1->productQuantity, $fetchedLine->productQuantity);
+                $this->assertEquals($line1->priceUnit, $fetchedLine->priceUnit);
+            } elseif ($fetchedLine->id === $line2->id) {
+                $this->assertEquals($line2->productQuantity, $fetchedLine->productQuantity);
+                $this->assertEquals($line2->priceUnit, $fetchedLine->priceUnit);
+            }
+        }
+    }
+
+    public function testHasManyRelationEmptyHydration()
+    {
+        \Obuchmann\OdooJsonRpc\Odoo::registerCast(new Odoo\Casts\DateTimeCast());
+
+        // 1. Set up a Partner for the PurchaseOrder
+        $testPartner = new Partner();
+        $testPartner->name = 'Test Partner for Empty PO';
+        $testPartner->save();
+        $this->assertNotNull($testPartner->id, "Failed to create test partner.");
+
+        // 2. Create PurchaseOrder without lines
+        $order = new PurchaseOrder();
+        $order->partnerId = $testPartner->id;
+        $order->save();
+        $this->assertNotNull($order->id, "Failed to create purchase order.");
+
+        // 3. Fetch the PurchaseOrder
+        /** @var PurchaseOrder $fetchedOrder */
+        $fetchedOrder = PurchaseOrder::find($order->id);
+        $this->assertNotNull($fetchedOrder, "Failed to fetch purchase order.");
+
+        // 4. Assert that the 'orderLines' property is an empty array
+        // Assuming 'orderLines' is the correct property name in PurchaseOrder model for HasMany relation
+        $this->assertIsArray($fetchedOrder->lines, "Order lines should be an array even if empty.");
+        $this->assertEmpty($fetchedOrder->lines, "Order lines property should be an empty array.");
     }
 
 }
