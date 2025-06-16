@@ -77,13 +77,9 @@ class ObjectEndpoint extends Endpoint
 
     public function count(string $model, ?Domain $domain = null, int $offset = 0, ?int $limit = null, ?string $order = null, ?Options $options = null): int
     {
-        return $this->execute(new Search(
+        return $this->execute(new \Obuchmann\OdooJsonRpc\Odoo\Request\SearchCount(
             model: $model,
-            domain: $domain ?? new Domain(),
-            offset: $offset,
-            limit: $limit,
-            order: $order,
-            count: true
+            domain: $domain ?? new Domain()
         ), $options);
     }
 
