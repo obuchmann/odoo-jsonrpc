@@ -24,6 +24,8 @@ trait HasFields
 
         foreach ($properties as $property) {
             $attributes = $property->getAttributes(Field::class);
+            $attributes += $property->getAttributes(HasMany::class);
+            $attributes += $property->getAttributes(BelongsTo::class);
 
             foreach ($attributes as $attribute) {
                 $fieldNames[] = $attribute->newInstance()->name ?? $property->name;
@@ -31,6 +33,7 @@ trait HasFields
         }
         return $fieldNames;
     }
+
 
     public static function hydrate(object $response): static
     {
@@ -43,7 +46,7 @@ trait HasFields
         $instance->id = $response->id ?? null; // Id is always present
 
         foreach ($properties as $property) {
-            $isKey = !empty($property->getAttributes(Key::class));
+            $isKey = !empty($property->getAttributes(Key::class)) || !empty($property->getAttributes(BelongsTo::class));
             $isKeyName = !empty($property->getAttributes(KeyName::class));
             $attributes = $property->getAttributes(Field::class);
 
@@ -75,7 +78,7 @@ trait HasFields
                         if (!empty($ids)) {
                             /** @var OdooModel $relatedModelClass */
                             $relatedModelClass = $attributeInstance->class;
-                            $instance->{$property->name} = $relatedModelClass::read($ids);
+                            $instance->{$property->name} = new LazyHasMany($relatedModelClass, 'read', [$ids]); //$relatedModelClass::read($ids);
                         } else {
                             $instance->{$property->name} = [];
                         }
@@ -85,10 +88,11 @@ trait HasFields
                         // If type doesn't allow null and key is not present or not an array, initialize as empty array
                         // This assumes a HasMany relation property is typically an array
                         if ($property->getType() && $property->getType()->getName() === 'array') {
-                             $instance->{$property->name} = [];
+                            $instance->{$property->name} = [];
                         }
                     }
-                } elseif ($attributeInstance instanceof BelongsTo) {
+                } else
+                if ($attributeInstance instanceof BelongsTo) {
                     $foreignKey = $attributeInstance->name;
                     if (isset($response->{$foreignKey})) {
                         $foreignValue = $response->{$foreignKey};
