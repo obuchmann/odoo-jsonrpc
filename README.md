@@ -38,12 +38,16 @@ $odoo->connect();
 // Check Access rights (bool)
 $check = $odoo->checkAccessRights('res.partner', 'read');
 
+// List model fields
+$fields = $odoo->listModelFields('res.partner');
+
 // Check Access rights in model syntax
 
 $check = $odoo->model('res.partner')
             ->can('read');
             
 // Use Domain for Search
+// You can also use orWhere() when building domains: $domain->orWhere('field', 'operator', 'value');
 $isCompanyDomain = (new Domain())->where('is_company', '=', true);
 $companyIds = $odoo->search('res.partner', $isCompanyDomain);
 
@@ -60,6 +64,22 @@ $company = $odoo->model('res.partner')
             ->where('is_company', '=', true)
             ->where('name', '=', 'My Company')
             ->first();
+
+// Count records directly
+$count = $odoo->count('res.partner', $isCompanyDomain);
+
+// Count records with model syntax
+$count = $odoo->model('res.partner')
+            ->where('is_company', '=', true)
+            ->count();
+
+// Group records and aggregate fields
+$groupedData = $odoo->model('res.partner')
+    ->where('active', '=', true)
+    ->groupBy(['country_id']) // Fields to group by (e.g., 'country_id', ['category_id', 'state_id'])
+    ->fields(['id', 'name']) // Fields to retrieve in each group
+    ->get();
+// This typically returns an array of objects, where each object has the grouped fields and any aggregated fields.
             
 // create with model syntax
 $partner = $odoo->model('res.partner')
@@ -83,6 +103,9 @@ $partner = $odoo->updateById('res.partner', $myCompanyId, [
 // delete by id
 $odoo->deleteById('res.partner', $myCompanyId);
 
+// Execute arbitrary keywords (custom RPC calls)
+$customResult = $odoo->executeKw('res.partner', 'check_access_rule', [[$myCompanyId], 'read']);
+// The arguments for executeKw (the third parameter) depend on the specific Odoo method being called.
 
 ```
 
@@ -177,30 +200,78 @@ class Partner extends OdooModel
 
     #[Field('email')]
     public ?string $email;
+
+    #[Field('country_id'), BelongsTo(Country::class)] // BelongsTo relationship
+    public ?Country $country;
+
+    #[Field('child_ids'), HasMany(Partner::class)] // 'child_ids' is the Odoo field, '$children' is the PHP property.
+    public array $children;
+}
+
+#[Model('res.country')]
+class Country extends OdooModel
+{
+    #[Field]
+    public string $name;
 }
 
 
 class Controller{
 
-    public function index(){
+    public function examples(){
         // Find Model by Id
         $partner = Partner::find(1);
         
+        // Accessing a BelongsTo relationship
+        $countryName = $partner->country?->name;
+
+        // Accessing a HasMany relationship
+        foreach($partner->children as $child){
+            // $child is a Partner model instance
+        }
+
+        // List available fields for the Partner model
+        $fields = Partner::listFields(); // Returns an array of field definitions
+
         // Search Model
         $partner = Partner::query()
             ->where('name', '=', 'Azure Interior')
             ->first();
         
+        // Search model and retrieve only specific fields
+        $partners = Partner::query()
+            ->fields(['name', 'email']) // Specify fields to retrieve
+            ->where('is_company', '=', true)
+            ->get();
+
+        // Search model with ordering
+        $sortedPartners = Partner::query()
+            ->orderBy('name', 'asc') // Order by name ascending
+            ->limit(10)
+            ->get();
+
         // Update Model
+        // You can also use $partner->fill(['name' => 'Dagobert Duck', 'email' => 'test@example.com']) for mass assignment
         $partner->name = "Dagobert Duck";
         $partner->save();
         
-        // Create returning ID
-        $partner = new Partner();
-        $partner->name = 'Tester';
-        $partner->save();               
+        // Create model
+        $newPartner = new Partner();
+        $newPartner->name = 'Tester';
+        // or using fill:
+        // $newPartner->fill(['name' => 'Tester', 'is_company' => false]);
+        $newPartner->save(); // The ID is set on $newPartner->id after saving. save() returns true on success.
+
+        // Comparing models
+        $anotherPartner = Partner::find(1);
+        if ($partner->equals($anotherPartner)) {
+            // Models are considered equal if they are of the same class and have the same ID
+        }
     }
 }
+
+### Field Type Casting
+For handling specific field types like dates or custom Odoo types, please refer to the [Casts](#casts) section.
 ```
 
 ### Casts
@@ -252,7 +323,7 @@ class DateTimeCast extends Cast
 ```
 
 
-For more examples take a look at the tests directory.
+For more detailed examples, please refer to the tests directory.
 
 
 ## Tests
