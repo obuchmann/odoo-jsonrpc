@@ -40,7 +40,6 @@ trait HasFields
 
         $instance = static::newInstance();
         $instance->id = $response->id ?? null; // Id is always present
-        $vars = get_object_vars($response);
 
         foreach ($properties as $property) {
             $isKey = !empty($property->getAttributes(Key::class));
@@ -49,8 +48,7 @@ trait HasFields
 
             foreach ($attributes as $attribute) {
                 $field = $attribute->newInstance()->name ?? $property->name;
-                if (array_key_exists($field, $vars)) {
-                    if($isKey){
+                if (isset($response->{$field})) {                    if($isKey){
                         $value = $response->{$field}[0] ?? null;
                     }elseif($isKeyName){
                         $value = $response->{$field}[1] ?? null;
