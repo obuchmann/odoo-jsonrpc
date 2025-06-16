@@ -30,6 +30,14 @@ return [
     */
     'password' => env('ODOO_PASSWORD', ''),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Fixed User ID (optional)
+    | If set, authentication will be skipped and this User ID will be used.
+    |--------------------------------------------------------------------------
+    */
+    'fixed_user_id' => env('ODOO_FIXED_USER_ID', null),
+
     'context' => [
         'lang' => env('ODOO_LANG', null),
         'timezone' => env('ODOO_TIMEZONE', null),
