@@ -32,7 +32,6 @@ services:
       HOST: db
       USER: odoo
       PASSWORD: odoo
-      ODOO_FIXED_USER_ID: 1
     ports:
       - "8069:8069"
     volumes:

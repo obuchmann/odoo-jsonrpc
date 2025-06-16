@@ -8,7 +8,6 @@ use JetBrains\PhpStorm\Immutable;
 #[Immutable]
 class Config
 {
-    protected ?int $fixedUserId = null;
 
     public function __construct(
         protected string $database,
@@ -16,7 +15,7 @@ class Config
         protected string $username,
         protected string $password,
         protected bool $sslVerify = true,
-        ?int $fixedUserId = null
+        protected ?int $fixedUserId = null
     ) {
         $this->fixedUserId = $fixedUserId;
     }
