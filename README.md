@@ -201,11 +201,55 @@ class Partner extends OdooModel
     #[Field('email')]
     public ?string $email;
 
-    #[Field('country_id'), BelongsTo(Country::class)] // BelongsTo relationship
+    #[Field('country_id')] // The Odoo foreign key field name
+    #[BelongsTo('country_id', Country::class)] // First param is Odoo FK name, second is related model class
     public ?Country $country;
+    // Defines an inverse one-to-one or many-to-one relationship.
+    // Parameters for #[BelongsTo]:
+    //   - name (string): The name of the foreign key field in the Odoo model (e.g., 'country_id').
+    //                    This name *must* match the name specified in the #[Field] attribute.
+    //   - class (string): The fully qualified class name of the related OdooModel (e.g., Country::class).
+    // Type hinting:
+    //   - Should be type-hinted as nullable (e.g., ?Country) if the relationship can be optional.
+    //   - Or non-nullable (e.g., Country) if it's mandatory (though Odoo relations are generally nullable).
+    // Data access:
+    //   - Accessing the property (e.g., $partner->country) returns an instance of the related model (Country)
+    //     or null if the relation is not set or the related record doesn't exist.
+    //   - Related model properties can be accessed using the nullsafe operator (e.g., $partner->country?->name).
 
-    #[Field('child_ids'), HasMany(Partner::class)] // 'child_ids' is the Odoo field, '$children' is the PHP property.
+    #[Field('child_ids')] // The Odoo field name on the current model holding related IDs
+    #[HasMany(Partner::class, 'child_ids')] // First param is related model class, second is Odoo field name
     public array $children;
+    // Defines a one-to-many or many-to-many relationship.
+    // Parameters for #[HasMany]:
+    //   - class (string): The fully qualified class name of the related OdooModel (e.g., Partner::class).
+    //   - name (string): The name of the Odoo field on the *current* model that holds the IDs of the related models (e.g., 'child_ids').
+    //                    This name *must* match the name specified in the #[Field] attribute.
+    // Type hinting:
+    //   - Should be type-hinted as `array` or `iterable`. The property will be an instance of `LazyHasMany`.
+
+    // Lazy Loading Behavior:
+    // The `HasMany` relationship implements lazy loading to optimize performance.
+    // 1. Initial Fetch: When a model instance is fetched (e.g., `$partner = Partner::find(1);`),
+    //    the `children` property is initialized with a `LazyHasMany` object, but no related data is fetched from Odoo yet.
+    //    `$partner->children->isLoaded()` would return `false` at this point.
+    // 2. Data Trigger: The actual child records are fetched from Odoo only when the `LazyHasMany` collection is first accessed.
+    //    This includes actions like:
+    //      - Iterating: `foreach ($partner->children as $child)`
+    //      - Counting: `count($partner->children)`
+    //      - Accessing an element: `$partner->children[0]`
+    //    Once accessed, `$partner->children->isLoaded()` will return `true`.
+    // 3. Performance Benefit: This avoids loading potentially large collections of related models unnecessarily
+    //    if they are not actually used.
+
+    // The `LazyHasMany` Wrapper Class:
+    // This class wraps the collection of related models and provides array-like access.
+    // - Implements `ArrayAccess`, `Iterator`, and `Countable`, allowing it to be used like a standard PHP array.
+    // - `isLoaded(): bool`: Checks if the collection's data has been fetched from Odoo without triggering a load.
+    //   Example: `if (!$partner->children->isLoaded()) { echo "Children not loaded yet."; }`
+    // - `reload(): self`: Discards any currently loaded data and forces a fresh fetch from Odoo
+    //   the next time the collection is accessed.
+    //   Example: `$partner->children->reload(); // Data will be re-fetched on next access`
 }
 
 #[Model('res.country')]
@@ -225,10 +269,26 @@ class Controller{
         // Accessing a BelongsTo relationship
         $countryName = $partner->country?->name;
 
-        // Accessing a HasMany relationship
+        // Accessing a HasMany relationship (triggers loading if not already loaded)
+        echo "Number of children: " . count($partner->children) . "\n";
         foreach($partner->children as $child){
             // $child is a Partner model instance
+            echo "Child name: " . $child->name . "\n";
         }
+
+        // Check if HasMany collection is loaded
+        if ($partner->children->isLoaded()) {
+            echo "Children collection is loaded.\n";
+        } else {
+            echo "Children collection is NOT loaded.\n";
+        }
+
+        // Force reload of HasMany collection
+        $partner->children->reload();
+        echo "Children collection reloaded. Accessing again will fetch fresh data.\n";
+        // Example: The following line would trigger a new fetch from Odoo
+        // $firstChild = $partner->children[0] ?? null;
+
 
         // List available fields for the Partner model
         $fields = Partner::listFields(); // Returns an array of field definitions
