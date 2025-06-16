@@ -178,7 +178,7 @@ Casts are global and can be registered in the Odoo class.
 \Obuchmann\OdooJsonRpc\Odoo::registerCast(new Odoo\Casts\DateTimeCast());
 
 // a datetime cast that respects the timezone
-\Obuchmann\OdooJsonRpc\Odoo::registerCast(new Odoo\Casts\DateTimeCast('Europe/Berlin'));
+\Obuchmann\OdooJsonRpc\Odoo::registerCast(new Odoo\Casts\DateTimeTimezoneCast(new \DateTimeZone('Europe/Berlin')));
 
 
 // you can write custom casts by extending the Obuchmann\OdooJsonRpc\Odoo\Casts\Cast class
