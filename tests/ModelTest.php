@@ -8,6 +8,7 @@ use Obuchmann\OdooJsonRpc\Odoo;
 use Obuchmann\OdooJsonRpc\Odoo\Casts\CastHandler;
 use Obuchmann\OdooJsonRpc\Odoo\OdooModel;
 use Obuchmann\OdooJsonRpc\Tests\Models\Partner;
+use Obuchmann\OdooJsonRpc\Tests\Models\Product;
 use Obuchmann\OdooJsonRpc\Tests\Models\PurchaseOrder;
 use Obuchmann\OdooJsonRpc\Tests\Models\PurchaseOrderLine;
 
@@ -38,6 +39,10 @@ class ModelTest extends TestCase
 
     public function testQuery()
     {
+        $partner = new Partner();
+        $partner->name = 'Azure Interior';
+        $partner->save();
+
         $partner = Partner::query()
             ->where('name', '=', 'Azure Interior')
             ->first();
@@ -144,14 +149,22 @@ class ModelTest extends TestCase
     public function testHasManyCreate()
     {
 
+        $partner = new Partner();
+        $partner->name = 'Tester';
+        $partner->save();
+
+        $product = new Product();
+        $product->name = "Tester2";
+        $product->save();
+
         $line = new PurchaseOrderLine();
         $line->name = 'Test';
-        $line->productId = 1;
+        $line->productId = $product->id;
         $line->priceUnit = 10;
         $line->productQuantity = 1;
 
         $order = new PurchaseOrder();
-        $order->partnerId = 1;
+        $order->partnerId = $partner->id;
         $order->lines = [$line];
         $order->save();
 
@@ -165,7 +178,7 @@ class ModelTest extends TestCase
         CastHandler::reset();
         Odoo::registerCast(new Odoo\Casts\DateTimeCast());
 
-        $item = PurchaseOrder::find(1);
+        $item = PurchaseOrder::query()->first();
 
         $this->assertNotNull($item->orderDate);
         $this->assertInstanceOf(\DateTime::class, $item->orderDate);
@@ -177,7 +190,7 @@ class ModelTest extends TestCase
         CastHandler::reset();
         Odoo::registerCast(new Odoo\Casts\DateTimeTimezoneCast(new \DateTimeZone('Europe/Vienna')));
 
-        $item2 = PurchaseOrder::find(1);
+        $item2 = PurchaseOrder::query()->first();
 
         $this->assertNotNull($item2->orderDate);
         $this->assertInstanceOf(\DateTime::class, $item2->orderDate);
@@ -192,7 +205,7 @@ class ModelTest extends TestCase
         CastHandler::reset();
         Odoo::registerCast(new Odoo\Casts\DateTimeCast());
 
-        $item = PurchaseOrder::find(1);
+        $item = PurchaseOrder::query()->first();
 
         $this->assertNull($item->approveDate);
 
