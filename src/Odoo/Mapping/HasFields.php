@@ -49,11 +49,11 @@ trait HasFields
             foreach ($attributes as $attribute) {
                 $field = $attribute->newInstance()->name ?? $property->name;
                 if (isset($response->{$field})) {
-                    if($isKey){
+                    if ($isKey) {
                         $value = $response->{$field}[0] ?? null;
-                    }elseif($isKeyName){
+                    } elseif ($isKeyName) {
                         $value = $response->{$field}[1] ?? null;
-                    }else{
+                    } else {
                         $value = $response->{$field};
                     }
                     $instance->{$property->name} = $castsExists ? CastHandler::cast($property, $value) : $value;
@@ -79,7 +79,7 @@ trait HasFields
             foreach ($attributes as $attribute) {
                 $field = $attribute->newInstance()->name ?? $property->name;
                 if ($property->isInitialized($model)) {
-                    $item->{$field} = $castsExists ? CastHandler::uncast($property, $model->{$property->name}) : $model->{$property->name} ;
+                    $item->{$field} = $castsExists ? CastHandler::uncast($property, $model->{$property->name}) : $model->{$property->name};
                 }
             }
 
