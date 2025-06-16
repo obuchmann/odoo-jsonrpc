@@ -48,7 +48,7 @@ trait HasFields
 
             foreach ($attributes as $attribute) {
                 $field = $attribute->newInstance()->name ?? $property->name;
-                if (isset($response->{$field})) {
+                if (property_exists($response, $field)) {
                     if($isKey){
                         $value = $response->{$field}[0] ?? null;
                     }elseif($isKeyName){
