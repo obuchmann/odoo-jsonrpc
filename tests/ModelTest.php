@@ -11,6 +11,7 @@ use Obuchmann\OdooJsonRpc\Tests\Models\Partner;
 use Obuchmann\OdooJsonRpc\Tests\Models\Product;
 use Obuchmann\OdooJsonRpc\Tests\Models\PurchaseOrder;
 use Obuchmann\OdooJsonRpc\Tests\Models\PurchaseOrderLine;
+use Obuchmann\OdooJsonRpc\Tests\Models\StockPicking;
 
 class ModelTest extends TestCase
 {
@@ -250,4 +251,187 @@ class ModelTest extends TestCase
         $this->assertFalse($partner->equals($partner6));
     }
 
+    public function testHasManyRelationHydration()
+    {
+        // 1. Set up a Partner for the PurchaseOrder
+        $testPartner = new Partner();
+        $testPartner->name = 'Test Partner for PO';
+        $testPartner->save();
+        $this->assertNotNull($testPartner->id, "Failed to create test partner.");
+
+        // 2. Set up a Product for PurchaseOrderLines
+        $testProduct = new Product();
+        $testProduct->name = 'Test Product for POLine';
+        $testProduct->save();
+        $this->assertNotNull($testProduct->id, "Failed to create test product.");
+
+        // 3. Create PurchaseOrder
+        $order = new PurchaseOrder();
+        $order->partnerId = $testPartner->id;
+        // Minimal required fields for PO, assuming orderDate might be set by Odoo
+        $order->save();
+        $this->assertNotNull($order->id, "Failed to create purchase order.");
+
+        // 4. Create PurchaseOrderLine instances
+        $line1 = new PurchaseOrderLine();
+        $line1->orderId = $order->id;
+        $line1->name = 'Line 1';
+        $line1->productId = $testProduct->id;
+        $line1->productQuantity = 2;
+        $line1->priceUnit = 10.0;
+        $line1->save();
+        $this->assertNotNull($line1->id, "Failed to create purchase order line 1.");
+
+        $line2 = new PurchaseOrderLine();
+        $line2->orderId = $order->id;
+        $line2->name = 'Line 2';
+        $line2->productId = $testProduct->id;
+        $line2->productQuantity = 5;
+        $line2->priceUnit = 20.0;
+        $line2->save();
+        $this->assertNotNull($line2->id, "Failed to create purchase order line 2.");
+
+        // 5. Fetch the PurchaseOrder
+        /** @var PurchaseOrder $fetchedOrder */
+        $fetchedOrder = PurchaseOrder::find($order->id);
+        $this->assertNotNull($fetchedOrder, "Failed to fetch purchase order.");
+
+        // 6. Assertions for the 'lines' property (assuming 'lines' is the property name for HasMany PurchaseOrderLine)
+        // The actual property name for lines in PurchaseOrder model is 'orderLines'
+        $this->assertIsArray($fetchedOrder->orderLines, "Order lines property should be an array.");
+        $this->assertCount(2, $fetchedOrder->orderLines, "Should have 2 order lines.");
+
+        foreach ($fetchedOrder->orderLines as $fetchedLine) {
+            $this->assertInstanceOf(PurchaseOrderLine::class, $fetchedLine, "Each line should be an instance of PurchaseOrderLine.");
+            $this->assertNotNull($fetchedLine->id, "Fetched line should have an ID.");
+            $this->assertNotNull($fetchedLine->name, "Fetched line should have a name.");
+            $this->assertTrue(in_array($fetchedLine->id, [$line1->id, $line2->id]));
+            if ($fetchedLine->id === $line1->id) {
+                $this->assertEquals($line1->productQuantity, $fetchedLine->productQuantity);
+                $this->assertEquals($line1->priceUnit, $fetchedLine->priceUnit);
+            } elseif ($fetchedLine->id === $line2->id) {
+                $this->assertEquals($line2->productQuantity, $fetchedLine->productQuantity);
+                $this->assertEquals($line2->priceUnit, $fetchedLine->priceUnit);
+            }
+        }
+    }
+
+    public function testHasManyRelationEmptyHydration()
+    {
+        // 1. Set up a Partner for the PurchaseOrder
+        $testPartner = new Partner();
+        $testPartner->name = 'Test Partner for Empty PO';
+        $testPartner->save();
+        $this->assertNotNull($testPartner->id, "Failed to create test partner.");
+
+        // 2. Create PurchaseOrder without lines
+        $order = new PurchaseOrder();
+        $order->partnerId = $testPartner->id;
+        $order->save();
+        $this->assertNotNull($order->id, "Failed to create purchase order.");
+
+        // 3. Fetch the PurchaseOrder
+        /** @var PurchaseOrder $fetchedOrder */
+        $fetchedOrder = PurchaseOrder::find($order->id);
+        $this->assertNotNull($fetchedOrder, "Failed to fetch purchase order.");
+
+        // 4. Assert that the 'orderLines' property is an empty array
+        // Assuming 'orderLines' is the correct property name in PurchaseOrder model for HasMany relation
+        $this->assertIsArray($fetchedOrder->orderLines, "Order lines should be an array even if empty.");
+        $this->assertEmpty($fetchedOrder->orderLines, "Order lines property should be an empty array.");
+    }
+
+    public function testBelongsToRelationHydration()
+    {
+        // 1. Set up a Partner
+        $testPartner = new Partner();
+        $testPartner->name = 'Test Partner for StockPicking';
+        $testPartner->email = 'partner@stock.com';
+        $testPartner->save();
+        $this->assertNotNull($testPartner->id, "Failed to create test partner.");
+
+        // 2. Set up a StockPicking
+        // Need to find valid location_id, location_dest_id, and picking_type_id
+        // Let's try to find some defaults or create them if necessary.
+        // For now, using placeholders and hoping Odoo has defaults or allows this.
+        // Common values: location_id (e.g. WH/Stock), location_dest_id (e.g. Customers)
+        // picking_type_id (e.g. Delivery Orders for a warehouse)
+
+        // Fetch a generic picking type (e.g., delivery order for the main warehouse)
+        // This might be too specific and fragile. A better way would be to ensure one exists.
+        // For simplicity, let's assume picking_type_id 1 and some location ids exist.
+        // This might need adjustment based on the Odoo instance's base data.
+        $pickingTypeId = $this->odoo->search('stock.picking.type', [['code', '=', 'outgoing']], ['limit' => 1])[0] ?? null;
+        $this->assertNotNull($pickingTypeId, "Could not find an outgoing picking type ID.");
+
+        $stockLocationId = $this->odoo->search('stock.location', [['usage', '=', 'internal']], ['limit' => 1])[0] ?? null;
+        $this->assertNotNull($stockLocationId, "Could not find an internal stock location ID.");
+
+        $customerLocationId = $this->odoo->search('stock.location', [['usage', '=', 'customer']], ['limit' => 1])[0] ?? null;
+        $this->assertNotNull($customerLocationId, "Could not find a customer location ID.");
+
+
+        $picking = new StockPicking();
+        $picking->name = 'Test Picking SP/OUT/0001'; // Name might be auto-generated by sequence
+        $picking->partner = $testPartner; // Assigning the object
+        $picking->locationId = $stockLocationId;
+        $picking->locationDestId = $customerLocationId;
+        $picking->pickingTypeId = $pickingTypeId;
+        $picking->save(); // This should use the ID from $testPartner for partner_id
+
+        $this->assertNotNull($picking->id, "Failed to create stock picking.");
+        // Check if partner_id was set
+        $rawPicking = $this->odoo->read('stock.picking', [$picking->id], ['partner_id'])[0];
+        $this->assertEquals($testPartner->id, $rawPicking['partner_id'][0]);
+
+
+        // 3. Fetch the StockPicking
+        /** @var StockPicking $fetchedPicking */
+        $fetchedPicking = StockPicking::find($picking->id);
+        $this->assertNotNull($fetchedPicking, "Failed to fetch stock picking.");
+
+        // 4. Assertions for the 'partner' property
+        $this->assertInstanceOf(Partner::class, $fetchedPicking->partner, "Partner property should be an instance of Partner.");
+        $this->assertEquals($testPartner->id, $fetchedPicking->partner->id, "Partner ID should match.");
+        $this->assertEquals($testPartner->name, $fetchedPicking->partner->name, "Partner name should match.");
+        $this->assertEquals($testPartner->email, $fetchedPicking->partner->email, "Partner email should match.");
+    }
+
+    public function testBelongsToRelationNullHydration()
+    {
+        // 1. Set up a StockPicking with partner_id as false/null
+        $pickingTypeId = $this->odoo->search('stock.picking.type', [['code', '=', 'outgoing']], ['limit' => 1])[0] ?? null;
+        $this->assertNotNull($pickingTypeId, "Could not find an outgoing picking type ID for null test.");
+
+        $stockLocationId = $this->odoo->search('stock.location', [['usage', '=', 'internal']], ['limit' => 1])[0] ?? null;
+        $this->assertNotNull($stockLocationId, "Could not find an internal stock location ID for null test.");
+
+        $customerLocationId = $this->odoo->search('stock.location', [['usage', '=', 'customer']], ['limit' => 1])[0] ?? null;
+        $this->assertNotNull($customerLocationId, "Could not find a customer location ID for null test.");
+
+        $picking = new StockPicking();
+        $picking->name = 'Test Picking SP/OUT/0002 No Partner';
+        // partner_id is explicitly set to false which Odoo RPC typically handles for nulling a Many2one
+        $picking->partner = null; // This should translate to partner_id: false when saving
+        $picking->locationId = $stockLocationId;
+        $picking->locationDestId = $customerLocationId;
+        $picking->pickingTypeId = $pickingTypeId;
+
+        // To ensure partner_id is set to false in the create call:
+        $createData = $picking->dehydrate($picking);
+        $createData->partner_id = false;
+        unset($createData->partner); // remove object if dehydrate added it
+
+        $pickingId = $this->odoo->create('stock.picking', (array)$createData);
+        $this->assertIsInt($pickingId, "Failed to create stock picking with null partner.");
+
+
+        // 2. Fetch the StockPicking
+        /** @var StockPicking $fetchedPicking */
+        $fetchedPicking = StockPicking::find($pickingId);
+        $this->assertNotNull($fetchedPicking, "Failed to fetch stock picking for null partner test.");
+
+        // 3. Assert that the 'partner' property is null
+        $this->assertNull($fetchedPicking->partner, "Partner property should be null.");
+    }
 }

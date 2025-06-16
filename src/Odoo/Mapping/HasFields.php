@@ -4,6 +4,7 @@
 namespace Obuchmann\OdooJsonRpc\Odoo\Mapping;
 
 
+use Obuchmann\OdooJsonRpc\Attributes\BelongsTo;
 use Obuchmann\OdooJsonRpc\Attributes\Field;
 use Obuchmann\OdooJsonRpc\Attributes\HasMany;
 use Obuchmann\OdooJsonRpc\Attributes\Key;
@@ -59,6 +60,56 @@ trait HasFields
                     $instance->{$property->name} = $castsExists ? CastHandler::cast($property, $value) : $value;
                 }
 
+            }
+        }
+
+        // Handle relations
+        foreach ($properties as $property) {
+            $attributes = $property->getAttributes();
+            foreach ($attributes as $attribute) {
+                $attributeInstance = $attribute->newInstance();
+                if ($attributeInstance instanceof HasMany) {
+                    $foreignKey = $attributeInstance->name;
+                    if (isset($response->{$foreignKey}) && is_array($response->{$foreignKey})) {
+                        $ids = $response->{$foreignKey};
+                        if (!empty($ids)) {
+                            /** @var OdooModel $relatedModelClass */
+                            $relatedModelClass = $attributeInstance->class;
+                            $instance->{$property->name} = $relatedModelClass::read($ids);
+                        } else {
+                            $instance->{$property->name} = [];
+                        }
+                    } elseif ($property->getType()?->allowsNull() ?? true) {
+                        $instance->{$property->name} = null;
+                    } else {
+                        // If type doesn't allow null and key is not present or not an array, initialize as empty array
+                        // This assumes a HasMany relation property is typically an array
+                        if ($property->getType() && $property->getType()->getName() === 'array') {
+                             $instance->{$property->name} = [];
+                        }
+                    }
+                } elseif ($attributeInstance instanceof BelongsTo) {
+                    $foreignKey = $attributeInstance->name;
+                    if (isset($response->{$foreignKey})) {
+                        $foreignValue = $response->{$foreignKey};
+                        $id = null;
+                        if (is_array($foreignValue) && count($foreignValue) > 0) {
+                            $id = $foreignValue[0]; // Assuming [id, name] format
+                        } elseif (is_int($foreignValue)) {
+                            $id = $foreignValue;
+                        }
+
+                        if ($id !== null) {
+                            /** @var OdooModel $relatedModelClass */
+                            $relatedModelClass = $attributeInstance->class;
+                            $instance->{$property->name} = $relatedModelClass::find($id);
+                        } elseif ($property->getType()?->allowsNull() ?? true) {
+                            $instance->{$property->name} = null;
+                        }
+                    } elseif ($property->getType()?->allowsNull() ?? true) {
+                        $instance->{$property->name} = null;
+                    }
+                }
             }
         }
 
