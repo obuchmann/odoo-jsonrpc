@@ -336,25 +336,97 @@ For handling specific field types like dates or custom Odoo types, please refer 
 
 ### Casts
 
-You can define a cast for your models. This is useful if you want to convert odoo fields to a specific type. There are some predefined casts for date and datetime fields.
+Field type casting is a powerful feature that allows you to convert data between Odoo's native format (often strings, integers, or simple arrays) and specific PHP types or objects. This makes working with Odoo data in your PHP application more type-safe, convenient, and object-oriented. For instance, Odoo typically stores dates and times as strings (e.g., '2023-12-31 15:45:00'). With casting, these can be automatically converted to PHP `\DateTime` or `\DateTimeImmutable` objects when you read data, and back to Odoo's string format when you save data.
 
-Casts are global and can be registered in the Odoo class.
+**How Casting Works**
+
+Casting is handled by dedicated cast classes. To create a custom cast, you extend the `Obuchmann\OdooJsonRpc\Odoo\Casts\Cast` abstract class and implement three key methods:
+
+1.  `getType(): string`: This method returns the fully qualified name of the PHP class that this cast is responsible for (e.g., `\DateTime::class`, `App\ValueObjects\MyCustomType::class`).
+2.  `cast($raw)`: This method takes the raw value from Odoo and converts it into an instance of the PHP type specified by `getType()`.
+3.  `uncast($value)`: This method takes an instance of your PHP type and converts it back into a format that Odoo expects.
+
+**Global Cast Registration**
+
+Casts are registered globally using the static `Odoo::registerCast()` method.
 
 ```php
+// Example: Registering the built-in DateTimeCast
+\Obuchmann\OdooJsonRpc\Odoo::registerCast(new \Obuchmann\OdooJsonRpc\Odoo\Casts\DateTimeCast());
 
-// The basic datetime cast
-\Obuchmann\OdooJsonRpc\Odoo::registerCast(new Odoo\Casts\DateTimeCast());
+// Example: Registering a DateTime cast that respects a specific timezone
+\Obuchmann\OdooJsonRpc\Odoo::registerCast(new \Obuchmann\OdooJsonRpc\Odoo\Casts\DateTimeTimezoneCast(new \DateTimeZone('Europe/Berlin')));
+```
 
-// a datetime cast that respects the timezone
-\Obuchmann\OdooJsonRpc\Odoo::registerCast(new Odoo\Casts\DateTimeTimezoneCast(new \DateTimeZone('Europe/Berlin')));
+Once a cast is registered for a specific PHP type (e.g., `\DateTime::class`), it will automatically be applied to any OdooModel property that is type-hinted with that PHP type.
 
+**Example: Using DateTime Casting**
 
-// you can write custom casts by extending the Obuchmann\OdooJsonRpc\Odoo\Casts\Cast class
-// example DateTimeCast
+Let's say you have an Odoo model with a `create_date` field, and you've registered the `DateTimeCast`.
+
+First, define your OdooModel in PHP:
+
+```php
+<?php
+
+namespace App\OdooModels;
+
+use Obuchmann\OdooJsonRpc\Odoo\OdooModel;
+use Obuchmann\OdooJsonRpc\Attributes\Model;
+use Obuchmann\OdooJsonRpc\Attributes\Field;
+
+#[Model('some.odoo.model')]
+class SomeOdooModel extends OdooModel
+{
+    #[Field]
+    public int $id;
+
+    #[Field('name')]
+    public string $name;
+
+    #[Field('create_date')] // This is the field name in Odoo
+    public ?\DateTime $createdAt; // Property type-hinted as \DateTime
+
+    // Other fields...
+}
+```
+
+Now, when you interact with this model:
+
+```php
+// Assuming DateTimeCast is registered globally as shown above
+
+// Fetching a model
+$model = SomeOdooModel::find(1);
+
+if ($model && $model->createdAt instanceof \DateTime) {
+    // $model->createdAt is already a \DateTime object!
+    echo "Created at: " . $model->createdAt->format('Y-m-d H:i:s');
+}
+
+// Setting a DateTime value
+$newModel = new SomeOdooModel();
+$newModel->name = "New Record";
+$newModel->createdAt = new \DateTime('now', new \DateTimeZone('UTC')); // Assign a DateTime object
+
+// When $newModel->save() is called, the createdAt property (which is a \DateTime object)
+// will be automatically converted by DateTimeCast::uncast() to a string like 'YYYY-MM-DD HH:MM:SS'
+// before being sent to Odoo.
+$newModel->save();
+
+```
+
+If the `create_date` field in Odoo can be false (empty), ensure your PHP property is nullable (`?\DateTime`). The `DateTimeCast` provided will return `null` if the raw value from Odoo is false or an invalid date string. Similarly, if you set the property to `null`, it will be uncasted appropriately (typically to `false` for Odoo).
+
+**Creating Custom Casts**
+
+You can write custom casts for any data type by extending the `Obuchmann\OdooJsonRpc\Odoo\Casts\Cast` class. Here's the structure of the built-in `DateTimeCast` as an example:
+
+```php
+namespace Obuchmann\OdooJsonRpc\Odoo\Casts;
 
 class DateTimeCast extends Cast
 {
-
     public function getType(): string
     {
         return \DateTime::class;
@@ -362,23 +434,31 @@ class DateTimeCast extends Cast
 
     public function cast($raw)
     {
-        if($raw){
+        if($raw){ // Odoo might send 'false' for empty date/datetime fields
             try {
+                // Attempt to create a DateTime object from the raw string
                 return new \DateTime($raw);
-            } catch (\Exception) {} // If no valid Date return null
+            } catch (\Exception) {
+                // If parsing fails (e.g., invalid date format), return null
+                return null;
+            }
         }
-        return null;
+        return null; // Return null if raw value is false or empty
     }
 
     public function uncast($value)
     {
         if($value instanceof \DateTime){
+            // Format the DateTime object into Odoo's expected string format
             return $value->format('Y-m-d H:i:s');
         }
+        // If it's not a DateTime object (e.g., null), return it as is
+        // Odoo typically expects 'false' for empty date/datetime fields if not setting a value
+        return $value === null ? false : $value;
     }
-} 
-
-
+}
+```
+This provides a robust way to handle specific data types and ensures that your PHP models work with rich PHP objects, while the library handles the conversion to and from Odoo's expected formats.
 
 ```
 
