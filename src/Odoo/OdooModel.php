@@ -89,6 +89,11 @@ class OdooModel
         return $this;
     }
 
+    public function executeKw(string $method, array $args = [])
+    {
+        return self::$odoo->executeKw(static::model(), $method, [$this->id,...$args]);
+    }
+
     public function fill(iterable $properties)
     {
         $reflectionClass = new \ReflectionClass(static::class);
