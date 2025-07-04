@@ -34,6 +34,8 @@ class ConfigFactory
             $this->getRequired('host'),
             $this->getRequired('username'),
             $this->getRequired('password'),
+            $this->config['ssl_verify'] ?? true,
+            $this->config['fixed_user_id'] ?? null
         );
     }
 

@@ -33,10 +33,10 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
      */
     protected function setDemoCredentials()
     {
-        $this->host = getenv('ODOO_HOST');
-        $this->username = getenv('ODOO_USERNAME');
-        $this->password = getenv('ODOO_PASSWORD');
-        $this->database = getenv('ODOO_DATABASE');
+        $this->host = getenv('ODOO_HOST') ?: 'http://localhost:8069/';
+        $this->username = getenv('ODOO_USERNAME') ?: 'admin';
+        $this->password = getenv('ODOO_PASSWORD') ?: 'admin';
+        $this->database = getenv('ODOO_DATABASE') ?: 'odoo';
     }
 
 }

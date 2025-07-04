@@ -4,7 +4,9 @@
 namespace Obuchmann\OdooJsonRpc\Tests\Models;
 
 
+use Obuchmann\OdooJsonRpc\Attributes\BelongsTo;
 use Obuchmann\OdooJsonRpc\Attributes\Field;
+use Obuchmann\OdooJsonRpc\Attributes\Key;
 use Obuchmann\OdooJsonRpc\Attributes\Model;
 use Obuchmann\OdooJsonRpc\Odoo\OdooModel;
 
@@ -14,7 +16,13 @@ class PurchaseOrderLine extends OdooModel
     #[Field]
     public string $name;
 
-    #[Field('product_id')]
+    #[BelongsTo('order_id', PurchaseOrder::class)]
+    public PurchaseOrder $order;
+
+    #[Field('order_id'), Key]
+    public ?int $orderId;
+
+    #[Field('product_id'), Key]
     public int $productId;
 
     #[Field('product_qty')]
@@ -22,4 +30,5 @@ class PurchaseOrderLine extends OdooModel
 
     #[Field('price_unit')]
     public float $priceUnit;
+
 }

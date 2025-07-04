@@ -13,7 +13,7 @@ use Obuchmann\OdooJsonRpc\Odoo\OdooModel;
 class PurchaseOrder extends OdooModel
 {
     #[HasMany(PurchaseOrderLine::class, 'order_line')]
-    public array $lines;
+    public array|\ArrayAccess $lines;
 
     #[Field('partner_id'), Key]
     public int $partnerId;

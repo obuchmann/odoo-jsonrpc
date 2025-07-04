@@ -14,8 +14,11 @@ class Config
         protected string $host,
         protected string $username,
         protected string $password,
-        protected bool $sslVerify = true
-    ) {}
+        protected bool $sslVerify = true,
+        protected ?int $fixedUserId = null
+    ) {
+        $this->fixedUserId = $fixedUserId;
+    }
 
     /**
      * @return string
@@ -55,5 +58,10 @@ class Config
     public function getSslVerify(): bool
     {
         return $this->sslVerify;
+    }
+
+    public function getFixedUserId(): ?int
+    {
+        return $this->fixedUserId;
     }
 }

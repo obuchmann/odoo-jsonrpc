@@ -38,7 +38,7 @@ class Client
                         'method' => $method,
                         'args' => $arguments
                     ],
-                    'id' => rand(0, 1000000000)
+                    'id' => mt_rand(0, 1000000000)
                 ]
             ]);
         } catch (GuzzleException $e) {
@@ -59,7 +59,17 @@ class Client
 
     private function makeResponse(ResponseInterface $response)
     {
-        $json = json_decode($response->getBody());
+        $body = (string) $response->getBody();
+        if (empty($body)) {
+            throw new OdooException($response, "Received an empty response from Odoo server.", null);
+        }
+
+        $json = json_decode($body);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new OdooException($response, "Failed to decode JSON response: " . json_last_error_msg(), null);
+        }
+
         if(isset($json->error)){
             $message = "Odoo Exception";
             if(isset($json->error->message)){
@@ -70,6 +80,12 @@ class Client
             }
             throw new OdooException($response, $message, $json->error->code ?? null);
         }
-        return $json->result ?? $json->id;
+        if(property_exists($json, 'result')){
+            return $json->result;
+        }
+        if(property_exists($json, 'id')){
+            return $json->id;
+        }
+        return null;
     }
 }

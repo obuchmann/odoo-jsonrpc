@@ -52,7 +52,7 @@ class OdooModel
 
     public static function query()
     {
-        //TODO: Lazy evaluate fields only for queries that needs feelds :low
+        //TODO: Lazy evaluate fields only for queries that needs fields :low
         return new Odoo\Models\ModelQuery(static::newInstance(), self::$odoo->model(static::model())->fields(static::fieldNames()));
     }
 

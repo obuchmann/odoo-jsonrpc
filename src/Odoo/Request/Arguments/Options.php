@@ -27,18 +27,19 @@ class Options
         return $this;
     }
 
-    public function setRaw(string $key, $value)
+    public function setRaw(string $key, $value): static
     {
         $this->options[$key] = $value;
+        return $this;
     }
 
-    public function limit(int $value)
+    public function limit(int $value): static
     {
-        $this->setRaw('limit', $value);
+        return $this->setRaw('limit', $value);
     }
 
-    public function offset(int $value)
+    public function offset(int $value): static
     {
-        $this->setRaw('offset', $value);
+        return $this->setRaw('offset', $value);
     }
 }
