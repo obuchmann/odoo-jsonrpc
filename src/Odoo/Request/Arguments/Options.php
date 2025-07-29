@@ -21,9 +21,9 @@ class Options
         return ['context' => $context] + $this->options;
     }
 
-    public function withContext(Context $context)
+    public function withContext(Context $context): static
     {
-        $this->context = $context;
+        $this->context = $context->setDefaults($this->context);
         return $this;
     }
 
