@@ -4,8 +4,6 @@
 namespace Obuchmann\OdooJsonRpc\Odoo\Request;
 
 
-use Obuchmann\OdooJsonRpc\JsonRpc\Client;
-
 /**
  * Class Create
  *

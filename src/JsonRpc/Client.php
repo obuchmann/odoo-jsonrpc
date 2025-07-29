@@ -10,7 +10,7 @@ use Psr\Http\Message\ResponseInterface;
 
 class Client
 {
-    private \GuzzleHttp\Client $client;
+    private ?\GuzzleHttp\Client $client;
     private ?ResponseInterface $lastResponse = null;
 
     public function __construct(string $baseUri, private string $service = 'object', $sslVerify = true)
@@ -19,6 +19,7 @@ class Client
         $this->client = new \GuzzleHttp\Client([
             'headers' => [
                 'Content-Type' => 'application/json',
+                'Connection' => 'close',
             ],
             'base_uri' => $baseUri,
             'verify' => $sslVerify,
@@ -59,12 +60,15 @@ class Client
 
     private function makeResponse(ResponseInterface $response)
     {
-        $body = (string) $response->getBody();
-        if (empty($body)) {
+        $body = $response->getBody();
+        $contents = $body->getContents();
+        $body->close();
+
+        if (empty($contents)) {
             throw new OdooException($response, "Received an empty response from Odoo server.", null);
         }
 
-        $json = json_decode($body);
+        $json = json_decode($contents);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new OdooException($response, "Failed to decode JSON response: " . json_last_error_msg(), null);
@@ -87,5 +91,11 @@ class Client
             return $json->id;
         }
         return null;
+    }
+
+    public function __destruct()
+    {
+        $this->client = null;
+        $this->lastResponse = null;
     }
 }

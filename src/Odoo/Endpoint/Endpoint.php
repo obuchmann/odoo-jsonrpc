@@ -24,7 +24,14 @@ class Endpoint
 
     public function getClient(bool $fresh = false): Client
     {
-        if ($fresh || null == $this->client) {
+        // Always create a new client when running in CLI mode
+        if ($fresh || null == $this->client || php_sapi_name() === 'cli') {
+            // In CLI mode, don't cache the client to prevent connection pool exhaustion
+            if (php_sapi_name() === 'cli') {
+                return new Client($this->getConfig()->getHost(), $this->service, $this->getConfig()->getSslVerify());
+            }
+            
+            // In non-CLI mode, cache the client as before
             $this->client = new Client($this->getConfig()->getHost(), $this->service, $this->getConfig()->getSslVerify());
         }
         return $this->client;
