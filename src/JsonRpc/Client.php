@@ -13,6 +13,8 @@ class Client
     private \GuzzleHttp\Client $client;
     private ?ResponseInterface $lastResponse = null;
 
+    private ?string $lastResponseContents = null;
+
     public function __construct(string $baseUri, private string $service = 'object', $sslVerify = true)
     {
 
@@ -46,6 +48,7 @@ class Client
             throw new OdooException(null, $e->getMessage(), $e->getCode(), $e);
         }
         $this->lastResponse = $response;
+        $this->lastResponseContents = null;
 
         return match($response->getStatusCode()) {
             200 => $this->makeResponse($response), // TODO ->result kann auch nicht definiert sein. Normal wenn ->error gegeben ist.
@@ -58,10 +61,17 @@ class Client
         return $this->lastResponse;
     }
 
+    public function getLastResponseContents(): ?string
+    {
+        return $this->lastResponseContents;
+    }
+
+
     private function makeResponse(ResponseInterface $response)
     {
         $body = $response->getBody();
         $contents = $body->getContents();
+        $this->lastResponseContents = $contents;
         $body->close();
 
         if (empty($contents)) {
