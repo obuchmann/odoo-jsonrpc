@@ -10,7 +10,7 @@ use Psr\Http\Message\ResponseInterface;
 
 class Client
 {
-    private ?\GuzzleHttp\Client $client;
+    private \GuzzleHttp\Client $client;
     private ?ResponseInterface $lastResponse = null;
 
     public function __construct(string $baseUri, private string $service = 'object', $sslVerify = true)
@@ -91,11 +91,5 @@ class Client
             return $json->id;
         }
         return null;
-    }
-
-    public function __destruct()
-    {
-        $this->client = null;
-        $this->lastResponse = null;
     }
 }
