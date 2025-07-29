@@ -176,7 +176,7 @@ trait HasFields
         return new static();
     }
 
-    private static function isIdArray(array $arr)
+    private static function isIdArray(array|\ArrayAccess $arr)
     {
         foreach ($arr as $item) {
             if (!is_int($item))
