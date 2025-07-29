@@ -13,12 +13,15 @@ class Client
     private \GuzzleHttp\Client $client;
     private ?ResponseInterface $lastResponse = null;
 
+    private ?string $lastResponseContents = null;
+
     public function __construct(string $baseUri, private string $service = 'object', $sslVerify = true)
     {
 
         $this->client = new \GuzzleHttp\Client([
             'headers' => [
                 'Content-Type' => 'application/json',
+                'Connection' => 'close',
             ],
             'base_uri' => $baseUri,
             'verify' => $sslVerify,
@@ -45,6 +48,7 @@ class Client
             throw new OdooException(null, $e->getMessage(), $e->getCode(), $e);
         }
         $this->lastResponse = $response;
+        $this->lastResponseContents = null;
 
         return match($response->getStatusCode()) {
             200 => $this->makeResponse($response), // TODO ->result kann auch nicht definiert sein. Normal wenn ->error gegeben ist.
@@ -57,14 +61,24 @@ class Client
         return $this->lastResponse;
     }
 
+    public function getLastResponseContents(): ?string
+    {
+        return $this->lastResponseContents;
+    }
+
+
     private function makeResponse(ResponseInterface $response)
     {
-        $body = (string) $response->getBody();
-        if (empty($body)) {
+        $body = $response->getBody();
+        $contents = $body->getContents();
+        $this->lastResponseContents = $contents;
+        $body->close();
+
+        if (empty($contents)) {
             throw new OdooException($response, "Received an empty response from Odoo server.", null);
         }
 
-        $json = json_decode($body);
+        $json = json_decode($contents);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new OdooException($response, "Failed to decode JSON response: " . json_last_error_msg(), null);

@@ -3,9 +3,6 @@
 
 namespace Obuchmann\OdooJsonRpc\Odoo\Request;
 
-use JetBrains\PhpStorm\Immutable;
-use Obuchmann\OdooJsonRpc\JsonRpc\Client;
-
 /**
  * Class FieldsGet
  *
