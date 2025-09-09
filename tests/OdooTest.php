@@ -307,7 +307,7 @@ class OdooTest extends TestCase
                 return [
                     // 1.Parameter = Domain
                     [
-                        ['is_company', '=', true]
+                        ['is_company', '=', false]
                     ]
                 ];
             }
@@ -323,7 +323,7 @@ class OdooTest extends TestCase
     public function testCallCustomMethodOverlay(){
         $ids = $this->odoo->executeKw('res.partner', 'search', [
             [
-                ['is_company', '=', true]
+                ['is_company', '=', false]
             ]
         ], new Options([
             'limit' => 3
@@ -360,34 +360,34 @@ class OdooTest extends TestCase
     public function testAggregate()
     {
 
-        $projectId = $this->odoo->model('project.project')
+        $orderId = $this->odoo->model('sale.order')
             ->create([
                 'name' => 'Aggregate Stuff',
-                'allow_timesheets' => true
+                'partner_id' => 1
             ]);
 
-        $time1 = $this->odoo->model('account.analytic.line')
+        $time1 = $this->odoo->model('sale.order.line')
             ->create([
-                'project_id' => $projectId,
-                'date' => date('Y-m-d'),
-                'unit_amount' => 3
+                'order_id' => $orderId,
+                'product_id' => 1,
+                'product_uom_qty' => 3
             ]);
 
-        $time2 = $this->odoo->model('account.analytic.line')
+        $time2 = $this->odoo->model('sale.order.line')
             ->create([
-                'project_id' => $projectId,
-                'date' => date('Y-m-d'),
-                'unit_amount' => 5
+                'order_id' => $orderId,
+                'product_id' => 1,
+                'product_uom_qty' => 5
             ]);
 
-        $response = $this->odoo->model('account.analytic.line')
-            ->where('project_id', '=', $projectId)
-            ->groupBy(['project_id'])
-            ->fields(['unit_amount:sum']) // Aggregation see: https://www.odoo.com/documentation/14.0/developer/reference/addons/orm.html#odoo.models.Model.read_group
+        $response = $this->odoo->model('sale.order.line')
+            ->where('order_id', '=', $orderId)
+            ->groupBy(['order_id'])
+            ->fields(['product_uom_qty:sum']) // Aggregation see: https://www.odoo.com/documentation/14.0/developer/reference/addons/orm.html#odoo.models.Model.read_group
             ->get();
 
-        $this->assertEquals($response[0]->project_id[0], $projectId);
-        $this->assertEquals($response[0]->unit_amount, 8);
+        $this->assertEquals($response[0]->order_id[0], $orderId);
+        $this->assertEquals($response[0]->product_uom_qty, 8);
 
     }
 
