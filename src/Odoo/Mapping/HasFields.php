@@ -134,7 +134,15 @@ trait HasFields
             foreach ($attributes as $attribute) {
                 $field = $attribute->newInstance()->name ?? $property->name;
                 if ($property->isInitialized($model)) {
-                    $item->{$field} = $castsExists ? CastHandler::uncast($property, $model->{$property->name}) : $model->{$property->name};
+                    $value = $model->{$property->name};
+                    
+                    // Handle foreign key fields that might be arrays [id, name]
+                    $isKey = !empty($property->getAttributes(Key::class)) || !empty($property->getAttributes(BelongsTo::class));
+                    if ($isKey && is_array($value) && count($value) >= 1) {
+                        $value = $value[0]; // Extract just the ID part
+                    }
+                    
+                    $item->{$field} = $castsExists ? CastHandler::uncast($property, $value) : $value;
                 }
             }
 
@@ -147,6 +155,11 @@ trait HasFields
                     if (null === $values)
                         continue;
 
+                    // Skip dehydrating LazyHasMany that hasn't been loaded or modified
+                    if ($values instanceof LazyHasMany && !$values->isLoaded()) {
+                        continue;
+                    }
+
                     if (self::isIdArray($values)) {
                         $item->{$field} = [[6, 0, $values]]; // Syncs given Ids
                     } else {
@@ -154,13 +167,17 @@ trait HasFields
                         foreach ($values as $value) {
                             if ($value instanceof OdooModel) {
                                 if ($value->exists()) {
-                                    $commands[] = [1, $value->id, $value->dehydrate($value)]; // Update related
+                                    $dehydratedValue = self::dehydrateRelatedModel($value);
+                                    $commands[] = [1, $value->id, $dehydratedValue]; // Update related
                                 } else {
-                                    $commands[] = [0, 0, $value->dehydrate($value)]; // Create related
+                                    $dehydratedValue = self::dehydrateRelatedModel($value);
+                                    $commands[] = [0, 0, $dehydratedValue]; // Create related
                                 }
                             }
                         }
-                        $item->{$field} = $commands;
+                        if (!empty($commands)) {
+                            $item->{$field} = $commands;
+                        }
                     }
 
                 }
@@ -174,6 +191,41 @@ trait HasFields
     protected static function newInstance()
     {
         return new static();
+    }
+
+    /**
+     * Safely dehydrate a related model, ensuring foreign key fields are properly handled
+     */
+    private static function dehydrateRelatedModel(OdooModel $relatedModel): object
+    {
+        $dehydratedData = $relatedModel->dehydrate($relatedModel);
+        
+        // Get reflection info to properly identify foreign key fields
+        $reflectionClass = new \ReflectionClass($relatedModel);
+        $properties = $reflectionClass->getProperties();
+        
+        foreach ($properties as $property) {
+            $isKey = !empty($property->getAttributes(Key::class)) || !empty($property->getAttributes(BelongsTo::class));
+            $fieldName = null;
+            
+            // Get the field name from Field attribute
+            $fieldAttributes = $property->getAttributes(Field::class);
+            foreach ($fieldAttributes as $attribute) {
+                $fieldName = $attribute->newInstance()->name ?? $property->name;
+                break;
+            }
+            
+            // If this is a foreign key field and exists in dehydrated data
+            if ($isKey && $fieldName && property_exists($dehydratedData, $fieldName)) {
+                $value = $dehydratedData->{$fieldName};
+                if (is_array($value) && count($value) >= 1 && is_int($value[0])) {
+                    // This is a foreign key field [id, name], extract just the ID
+                    $dehydratedData->{$fieldName} = $value[0];
+                }
+            }
+        }
+        
+        return $dehydratedData;
     }
 
     private static function isIdArray(array|\ArrayAccess $arr)
